@@ -3,8 +3,9 @@
   "displayName": "Taskingen",
   "description": "Run npm and shell scripts from the Explorer sidebar.",
   "version": "0.1.0",
+  "publisher": "cemcakirlar",
   "engines": {
-    "vscode": "^1.96.0"
+    "vscode": "^1.125.0"
   },
   "categories": [
     "Other"
@@ -13,7 +14,9 @@
   "main": "./out/extension.js",
   "scripts": {
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile",
+    "package": "vsce package --allow-missing-repository --skip-license"
   },
   "dependencies": {
     "jsonc-parser": "^3.3.1"
@@ -21,6 +24,7 @@
   "devDependencies": {
     "@types/node": "^24.0.0",
     "@types/vscode": "^1.125.0",
+    "@vscode/vsce": "^3.9.2",
     "typescript": "^5.8.0"
   },
   "contributes": {
