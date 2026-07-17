@@ -1,0 +1,132 @@
+{
+  "name": "taskingen",
+  "displayName": "Taskingen",
+  "description": "Run npm and shell scripts from the Explorer sidebar.",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "dependencies": {
+    "jsonc-parser": "^3.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/vscode": "^1.125.0",
+    "typescript": "^5.8.0"
+  },
+  "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "taskingen.scripts",
+          "name": "Taskingen",
+          "contextualTitle": "Taskingen"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "taskingen.open",
+        "title": "Open Script Source",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "taskingen.run",
+        "title": "Run Script",
+        "icon": "$(play)"
+      },
+      {
+        "command": "taskingen.stop",
+        "title": "Stop Script",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "taskingen.focusRunning",
+        "title": "Focus Running Script",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "taskingen.refresh",
+        "title": "Refresh Scripts",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "taskingen.refresh",
+          "when": "view == taskingen.scripts",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "taskingen.open",
+          "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == shellScript || viewItem == npmScriptRunning || viewItem == shellScriptRunning)",
+          "group": "inline@1"
+        },
+        {
+          "command": "taskingen.run",
+          "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == shellScript)",
+          "group": "inline@2"
+        },
+        {
+          "command": "taskingen.stop",
+          "when": "view == taskingen.scripts && (viewItem == npmScriptRunning || viewItem == shellScriptRunning || viewItem == runningTask)",
+          "group": "inline@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Taskingen",
+      "properties": {
+        "taskingen.npmScriptGrouping.separator": {
+          "type": "string",
+          "default": ":",
+          "description": "Literal separator used to nest npm script names under project folders. An empty value disables grouping."
+        },
+        "taskingen.npmScriptGrouping.maxDepth": {
+          "type": "integer",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Maximum number of separator-based group levels under each project. Use 0 to disable grouping."
+        },
+        "taskingen.npmProjectGrouping.groupByScope": {
+          "type": "boolean",
+          "default": true,
+          "description": "Group scoped npm packages (for example @cemcakirlar/mst-tab-sync) under a shared @scope node."
+        },
+        "taskingen.scriptClickAction": {
+          "type": "string",
+          "enum": [
+            "open",
+            "execute"
+          ],
+          "default": "open",
+          "description": "What happens when you click a script name in the tree. Inline Open and Run actions remain available either way.",
+          "enumDescriptions": [
+            "Open the package.json script entry or shell script file in the editor.",
+            "Run the script in the terminal."
+          ]
+        },
+        "taskingen.tree.defaultExpandedDepth": {
+          "type": "integer",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 10,
+          "description": "How many tree levels are expanded by default. 0 collapses everything, 1 expands only the root npm/shell groups, and higher values expand deeper project and script groups."
+        }
+      }
+    }
+  }
+}

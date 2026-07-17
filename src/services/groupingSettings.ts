@@ -1,0 +1,76 @@
+import * as vscode from "vscode";
+import { normalizeDefaultExpandedDepth } from "./treeExpansion";
+
+export interface NpmScriptGroupingSettings {
+  readonly separator: string;
+  readonly maxDepth: number;
+}
+
+export interface NpmProjectGroupingSettings {
+  readonly groupByScope: boolean;
+}
+
+export type ScriptClickAction = "open" | "execute";
+
+export function readNpmScriptGroupingSettings(
+  configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
+    "taskingen",
+  ),
+): NpmScriptGroupingSettings {
+  const separatorValue = configuration.get("npmScriptGrouping.separator");
+  const maxDepthValue = configuration.get("npmScriptGrouping.maxDepth");
+
+  return {
+    separator: typeof separatorValue === "string" ? separatorValue : ":",
+    maxDepth: normalizeBoundedInteger(maxDepthValue, 1),
+  };
+}
+
+export function readNpmProjectGroupingSettings(
+  configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
+    "taskingen",
+  ),
+): NpmProjectGroupingSettings {
+  const groupByScopeValue = configuration.get("npmProjectGrouping.groupByScope");
+
+  return {
+    groupByScope: typeof groupByScopeValue === "boolean" ? groupByScopeValue : true,
+  };
+}
+
+export function readScriptClickAction(
+  configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
+    "taskingen",
+  ),
+): ScriptClickAction {
+  const value = configuration.get("scriptClickAction");
+  return value === "execute" ? "execute" : "open";
+}
+
+export function readDefaultExpandedDepth(
+  configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
+    "taskingen",
+  ),
+): number {
+  return normalizeDefaultExpandedDepth(configuration.get("tree.defaultExpandedDepth"));
+}
+
+export function affectsTaskingenTree(
+  event: vscode.ConfigurationChangeEvent,
+): boolean {
+  return (
+    event.affectsConfiguration("taskingen.npmScriptGrouping.separator") ||
+    event.affectsConfiguration("taskingen.npmScriptGrouping.maxDepth") ||
+    event.affectsConfiguration("taskingen.npmProjectGrouping.groupByScope") ||
+    event.affectsConfiguration("taskingen.scriptClickAction") ||
+    event.affectsConfiguration("taskingen.tree.defaultExpandedDepth")
+  );
+}
+
+function normalizeBoundedInteger(value: unknown, fallback: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return fallback;
+  }
+
+  return Math.max(0, Math.min(10, Math.trunc(value)));
+}
