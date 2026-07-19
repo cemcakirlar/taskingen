@@ -5,6 +5,23 @@
   "version": "0.1.1",
   "publisher": "cemcakirlar",
   "icon": "media/icon.png",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cemcakirlar/taskingen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cemcakirlar/taskingen/issues"
+  },
+  "homepage": "https://github.com/cemcakirlar/taskingen#readme",
+  "keywords": [
+    "scripts",
+    "npm",
+    "shell",
+    "tasks",
+    "terminal",
+    "explorer"
+  ],
   "engines": {
     "vscode": "^1.125.0"
   },
@@ -18,7 +35,8 @@
     "compile:test": "tsc -p tsconfig.test.json",
     "watch": "tsc -watch -p ./",
     "vscode:prepublish": "npm run compile",
-    "package": "vsce package --allow-missing-repository --skip-license",
+    "package": "vsce package",
+    "publish": "vsce publish",
     "test": "npm run test:unit",
     "test:unit": "npm run compile:test && node --require ./test/helpers/register-vscode-mock.cjs --test 'out-test/test/unit/**/*.test.js'",
     "test:integration": "npm run compile:test && node --require ./test/helpers/register-vscode-mock.cjs --test 'out-test/test/integration/**/*.test.js'",
