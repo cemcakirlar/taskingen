@@ -54,14 +54,18 @@
         "icon": "$(debug-stop)"
       },
       {
-        "command": "taskingen.focusRunning",
-        "title": "Focus Running Script",
-        "icon": "$(terminal)"
-      },
-      {
         "command": "taskingen.refresh",
         "title": "Refresh Scripts",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "taskingen.clearHistory",
+        "title": "Clear Task History",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "taskingen.activateScript",
+        "title": "Activate Script"
       }
     ],
     "menus": {
@@ -85,8 +89,13 @@
         },
         {
           "command": "taskingen.stop",
-          "when": "view == taskingen.scripts && (viewItem == npmScriptRunning || viewItem == shellScriptRunning || viewItem == runningTask)",
+          "when": "view == taskingen.scripts && (viewItem == npmScriptRunning || viewItem == shellScriptRunning)",
           "group": "inline@2"
+        },
+        {
+          "command": "taskingen.clearHistory",
+          "when": "view == taskingen.scripts && viewItem == taskHistory",
+          "group": "inline@1"
         }
       ]
     },
@@ -117,10 +126,23 @@
             "execute"
           ],
           "default": "open",
-          "description": "What happens when you click a script name in the tree. Inline Open and Run actions remain available either way.",
+          "description": "What happens when you activate a script name in the tree (see Script Click Mode). Inline Open and Run actions remain available either way.",
           "enumDescriptions": [
             "Open the package.json script entry or shell script file in the editor.",
             "Run the script in the terminal."
+          ]
+        },
+        "taskingen.scriptClickMode": {
+          "type": "string",
+          "enum": [
+            "singleClick",
+            "doubleClick"
+          ],
+          "default": "doubleClick",
+          "description": "Whether the configured script action runs on a single click or a double click.",
+          "enumDescriptions": [
+            "Activate the script on single click.",
+            "Activate the script on double click."
           ]
         },
         "taskingen.tree.defaultExpandedDepth": {
@@ -129,6 +151,18 @@
           "minimum": 0,
           "maximum": 10,
           "description": "How many tree levels are expanded by default. 0 collapses everything, 1 expands only the root npm/shell groups, and higher values expand deeper project and script groups."
+        },
+        "taskingen.taskHistory.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the Task History group at the top of the Taskingen tree with recently run scripts from the current workspace folder."
+        },
+        "taskingen.taskHistory.maxItems": {
+          "type": "integer",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 50,
+          "description": "How many recently run scripts to show under Task History."
         }
       }
     }

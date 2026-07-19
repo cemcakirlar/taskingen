@@ -1,13 +1,12 @@
 import * as vscode from "vscode";
-import type { ScriptClickAction } from "../services/groupingSettings";
 import type { NpmProject } from "../services/packageJsonScanner";
 import type { NpmProjectLeafNode } from "../services/npmProjectTree";
 import type { NpmScriptTreeNode } from "../services/npmScriptTree";
-import type { RunningTaskEntry } from "../services/runningTaskRegistry";
 import type { RunnableTask } from "../services/runner";
+import { getTaskIdentity } from "../services/taskIdentity";
 import { isTreeLevelExpanded } from "../services/treeExpansion";
 
-export type TaskGroupKind = "npm" | "shell" | "running";
+export type TaskGroupKind = "npm" | "shell" | "history";
 
 export class TaskGroupItem extends vscode.TreeItem {
   public constructor(
@@ -20,6 +19,7 @@ export class TaskGroupItem extends vscode.TreeItem {
     super(label, collapsibleStateForDepth(depth, defaultExpandedDepth));
     this.description = description;
     this.iconPath = new vscode.ThemeIcon(iconForGroup(groupKind));
+    this.contextValue = contextValueForGroup(groupKind);
     // Include expansion depth so setting changes invalidate VS Code's cached expand state.
     this.id = `expand:${defaultExpandedDepth}:group:${groupKind}`;
   }
@@ -76,27 +76,12 @@ export class NpmScriptGroupItem extends vscode.TreeItem {
   }
 }
 
-export class RunningTaskItem extends vscode.TreeItem {
-  public constructor(public readonly entry: RunningTaskEntry) {
-    super(entry.label, vscode.TreeItemCollapsibleState.None);
-    this.contextValue = "runningTask";
-    this.iconPath = new vscode.ThemeIcon("play-circle");
-    this.tooltip = `${entry.label}\nClick to focus the terminal`;
-    this.id = `running:${entry.identity}`;
-    this.command = {
-      command: "taskingen.focusRunning",
-      title: "Focus Running Script",
-      arguments: [this],
-    };
-  }
-}
-
 export class TaskItem extends vscode.TreeItem {
   public constructor(
     public readonly task: RunnableTask,
     displayLabel: string = task.name,
-    clickAction: ScriptClickAction = "open",
     isRunning: boolean = false,
+    treeIdPrefix?: string,
   ) {
     super(displayLabel, vscode.TreeItemCollapsibleState.None);
 
@@ -108,9 +93,12 @@ export class TaskItem extends vscode.TreeItem {
       isRunning ? "play-circle" : task.kind === "npm" ? "symbol-event" : "file-code",
     );
     this.resourceUri = task.kind === "shell" ? task.scriptUri : task.packageJsonUri;
+    if (treeIdPrefix !== undefined) {
+      this.id = `${treeIdPrefix}:${getTaskIdentity(task)}`;
+    }
     this.command = {
-      command: clickAction === "execute" ? "taskingen.run" : "taskingen.open",
-      title: clickAction === "execute" ? "Run Script" : "Open Script Source",
+      command: "taskingen.activateScript",
+      title: "Activate Script",
       arguments: [this],
     };
   }
@@ -121,7 +109,6 @@ export type TaskTreeItem =
   | NpmScopeItem
   | NpmProjectItem
   | NpmScriptGroupItem
-  | RunningTaskItem
   | TaskItem;
 
 function iconForGroup(groupKind: TaskGroupKind): string {
@@ -133,7 +120,11 @@ function iconForGroup(groupKind: TaskGroupKind): string {
     return "terminal-bash";
   }
 
-  return "play-circle";
+  return "history";
+}
+
+function contextValueForGroup(groupKind: TaskGroupKind): string | undefined {
+  return groupKind === "history" ? "taskHistory" : undefined;
 }
 
 function describeTaskItem(task: RunnableTask, isRunning: boolean): string | undefined {
@@ -141,9 +132,7 @@ function describeTaskItem(task: RunnableTask, isRunning: boolean): string | unde
     return "running";
   }
 
-  return task.kind === "shell"
-    ? vscode.workspace.asRelativePath(task.scriptUri, false)
-    : undefined;
+  return task.kind === "shell" ? vscode.workspace.asRelativePath(task.scriptUri, false) : undefined;
 }
 
 function buildTaskTooltip(task: RunnableTask, isRunning: boolean): string {
@@ -155,10 +144,7 @@ function buildTaskTooltip(task: RunnableTask, isRunning: boolean): string {
   return `${runningPrefix}${task.scriptUri.fsPath}`;
 }
 
-function collapsibleStateForDepth(
-  depth: number,
-  defaultExpandedDepth: number,
-): vscode.TreeItemCollapsibleState {
+function collapsibleStateForDepth(depth: number, defaultExpandedDepth: number): vscode.TreeItemCollapsibleState {
   return isTreeLevelExpanded(depth, defaultExpandedDepth)
     ? vscode.TreeItemCollapsibleState.Expanded
     : vscode.TreeItemCollapsibleState.Collapsed;
