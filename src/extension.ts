@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { affectsTaskingenTree } from "./services/groupingSettings";
+import { affectsTaskingenTree } from "./services/settings";
 import { RunningTaskRegistry } from "./services/runningTaskRegistry";
 import { createScriptActivationController, runConfiguredScriptAction } from "./services/scriptActivation";
 import { openTaskSource } from "./services/scriptSourceOpener";
@@ -10,6 +10,7 @@ import { TaskItem } from "./tree/TaskItem";
 import { TaskTreeProvider, type TaskCounts } from "./tree/TaskTreeProvider";
 
 const SCRIPT_VIEW_ID = "taskingen.scripts";
+const REFRESH_DEBOUNCE_MS = 250;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const outputChannel = vscode.window.createOutputChannel("Taskingen");
@@ -35,6 +36,18 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       outputChannel.appendLine(`Refresh failed: ${describeError(error)}`);
       applyTreeMessage("Unable to discover scripts. See the Taskingen output for details.");
     }
+  };
+
+  let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+  const scheduleRefresh = (): void => {
+    if (refreshTimer !== undefined) {
+      clearTimeout(refreshTimer);
+    }
+
+    refreshTimer = setTimeout(() => {
+      refreshTimer = undefined;
+      void refresh();
+    }, REFRESH_DEBOUNCE_MS);
   };
 
   const openScript = async (item: TaskItem): Promise<void> => {
@@ -106,12 +119,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   });
   const refreshCommand = vscode.commands.registerCommand("taskingen.refresh", refresh);
   const watcher = vscode.workspace.createFileSystemWatcher("**/{package.json,*.sh,*.bash}");
-  const changeListener = watcher.onDidChange(() => void refresh());
-  const createListener = watcher.onDidCreate(() => void refresh());
-  const deleteListener = watcher.onDidDelete(() => void refresh());
+  const changeListener = watcher.onDidChange(scheduleRefresh);
+  const createListener = watcher.onDidCreate(scheduleRefresh);
+  const deleteListener = watcher.onDidDelete(scheduleRefresh);
+  const workspaceFoldersListener = vscode.workspace.onDidChangeWorkspaceFolders(() => {
+    scheduleRefresh();
+  });
   const configurationListener = vscode.workspace.onDidChangeConfiguration((event) => {
     if (affectsTaskingenTree(event)) {
-      void refresh();
+      scheduleRefresh();
     }
   });
   const terminalCloseListener = vscode.window.onDidCloseTerminal((terminal) => {
@@ -120,9 +136,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const runningChangeListener = runningRegistry.onDidChange(() => {
     provider.refreshRunning();
     applyTreeMessage(createEmptyStateMessage(provider.getCounts()));
-  });
-  const selectionListener = treeView.onDidChangeSelection((event) => {
-    scriptActivation.handleSelectionChange(event.selection);
   });
 
   context.subscriptions.push(
@@ -141,10 +154,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     changeListener,
     createListener,
     deleteListener,
+    workspaceFoldersListener,
     configurationListener,
     terminalCloseListener,
     runningChangeListener,
-    selectionListener,
+    {
+      dispose: () => {
+        if (refreshTimer !== undefined) {
+          clearTimeout(refreshTimer);
+        }
+      },
+    },
   );
 
   await refresh();

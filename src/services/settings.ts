@@ -78,7 +78,6 @@ export function affectsTaskingenTree(event: vscode.ConfigurationChangeEvent): bo
     event.affectsConfiguration("taskingen.npmScriptGrouping.separator") ||
     event.affectsConfiguration("taskingen.npmScriptGrouping.maxDepth") ||
     event.affectsConfiguration("taskingen.npmProjectGrouping.groupByScope") ||
-    event.affectsConfiguration("taskingen.scriptClickAction") ||
     event.affectsConfiguration("taskingen.tree.defaultExpandedDepth") ||
     event.affectsConfiguration("taskingen.taskHistory.enabled") ||
     event.affectsConfiguration("taskingen.taskHistory.maxItems")

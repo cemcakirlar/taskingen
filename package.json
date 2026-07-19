@@ -14,9 +14,14 @@
   "main": "./out/extension.js",
   "scripts": {
     "compile": "tsc -p ./",
+    "compile:test": "tsc -p tsconfig.test.json",
     "watch": "tsc -watch -p ./",
     "vscode:prepublish": "npm run compile",
-    "package": "vsce package --allow-missing-repository --skip-license"
+    "package": "vsce package --allow-missing-repository --skip-license",
+    "test": "npm run test:unit",
+    "test:unit": "npm run compile:test && node --require ./test/helpers/register-vscode-mock.cjs --test 'out-test/test/unit/**/*.test.js'",
+    "test:integration": "npm run compile:test && node --require ./test/helpers/register-vscode-mock.cjs --test 'out-test/test/integration/**/*.test.js'",
+    "test:e2e": "npm run compile:test && node --require ./test/helpers/register-vscode-mock.cjs --test 'out-test/test/e2e/**/*.test.js'"
   },
   "dependencies": {
     "jsonc-parser": "^3.3.1"
@@ -37,35 +42,42 @@
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "taskingen.scripts",
+        "contents": "Open a folder to discover npm and shell scripts.\n[Open Folder](command:vscode.openFolder)",
+        "when": "workbenchState == empty"
+      }
+    ],
     "commands": [
       {
         "command": "taskingen.open",
-        "title": "Open Script Source",
+        "title": "Taskingen: Open Script Source",
         "icon": "$(go-to-file)"
       },
       {
         "command": "taskingen.run",
-        "title": "Run Script",
+        "title": "Taskingen: Run Script",
         "icon": "$(play)"
       },
       {
         "command": "taskingen.stop",
-        "title": "Stop Script",
+        "title": "Taskingen: Stop Script",
         "icon": "$(debug-stop)"
       },
       {
         "command": "taskingen.refresh",
-        "title": "Refresh Scripts",
+        "title": "Taskingen: Refresh Scripts",
         "icon": "$(refresh)"
       },
       {
         "command": "taskingen.clearHistory",
-        "title": "Clear Task History",
+        "title": "Taskingen: Clear Task History",
         "icon": "$(clear-all)"
       },
       {
         "command": "taskingen.activateScript",
-        "title": "Activate Script"
+        "title": "Taskingen: Activate Script"
       }
     ],
     "menus": {
@@ -139,9 +151,9 @@
             "doubleClick"
           ],
           "default": "doubleClick",
-          "description": "Whether the configured script action runs on a single click or a double click.",
+          "description": "Whether the configured script action runs on a single click or a double click. Interacts with workbench.list.openMode: when that setting is doubleClick, Taskingen activates when the tree item opens (typically on double click).",
           "enumDescriptions": [
-            "Activate the script on single click.",
+            "Activate the script when the tree item opens on a single click (or on double click if workbench.list.openMode is doubleClick).",
             "Activate the script on double click."
           ]
         },

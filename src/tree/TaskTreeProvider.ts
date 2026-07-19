@@ -4,7 +4,7 @@ import {
   readNpmProjectGroupingSettings,
   readNpmScriptGroupingSettings,
   readTaskHistorySettings,
-} from "../services/groupingSettings";
+} from "../services/settings";
 import { buildNpmProjectTree, type NpmProjectTreeNode } from "../services/npmProjectTree";
 import { buildNpmScriptTree, type NpmScriptTreeNode } from "../services/npmScriptTree";
 import { scanPackageJsonProjects, type NpmProject } from "../services/packageJsonScanner";
@@ -24,6 +24,7 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskTreeItem>, 
   private readonly changeEmitter = new vscode.EventEmitter<TaskTreeItem | undefined>();
   private npmProjects: readonly NpmProject[] = [];
   private shellScripts: readonly ShellScriptTask[] = [];
+  private refreshGeneration = 0;
 
   public readonly onDidChangeTreeData = this.changeEmitter.event;
 
@@ -104,7 +105,12 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskTreeItem>, 
   }
 
   public async refresh(): Promise<TaskCounts> {
+    const generation = ++this.refreshGeneration;
     const [npmProjects, shellScripts] = await Promise.all([scanPackageJsonProjects(this.outputChannel), scanShellScripts()]);
+
+    if (generation !== this.refreshGeneration) {
+      return this.getCounts();
+    }
 
     this.npmProjects = npmProjects;
     this.shellScripts = shellScripts;

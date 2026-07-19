@@ -76,7 +76,8 @@ export function stopTask(
   }
 
   entry.terminal.show();
-  // Soft stop: interrupt the process, keep the terminal for reuse.
+  // Soft stop: interrupt the foreground process and clear running UI immediately.
+  // The shell may still be winding down; the terminal is kept for reuse.
   entry.terminal.sendText("\u0003", false);
   registry.unregister(getTaskIdentity(task));
   return true;
@@ -88,21 +89,46 @@ async function executeInTerminal(
   onTaskEnded: () => void,
 ): Promise<void> {
   const shellIntegration = await waitForShellIntegration(terminal, 3000);
+  const disposables: vscode.Disposable[] = [];
+  let ended = false;
+
+  const endOnce = (): void => {
+    if (ended) {
+      return;
+    }
+
+    ended = true;
+    for (const disposable of disposables) {
+      disposable.dispose();
+    }
+    onTaskEnded();
+  };
+
+  disposables.push(
+    vscode.window.onDidCloseTerminal((closed) => {
+      if (closed === terminal) {
+        endOnce();
+      }
+    }),
+  );
 
   if (shellIntegration === undefined) {
+    // Without shell integration we cannot observe command completion; clear
+    // running state when the terminal closes (Stop already unregisters).
     terminal.sendText(commandLine);
     return;
   }
 
   const execution = shellIntegration.executeCommand(commandLine);
-  const endListener = vscode.window.onDidEndTerminalShellExecution((event) => {
-    if (event.execution !== execution) {
-      return;
-    }
+  disposables.push(
+    vscode.window.onDidEndTerminalShellExecution((event) => {
+      if (event.execution !== execution) {
+        return;
+      }
 
-    endListener.dispose();
-    onTaskEnded();
-  });
+      endOnce();
+    }),
+  );
 }
 
 async function waitForShellIntegration(

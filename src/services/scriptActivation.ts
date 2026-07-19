@@ -3,7 +3,7 @@ import {
   readScriptClickAction,
   readScriptClickMode,
   type ScriptClickMode,
-} from "./groupingSettings";
+} from "./settings";
 import { getTaskIdentity } from "./taskIdentity";
 import { TaskItem } from "../tree/TaskItem";
 
@@ -14,17 +14,43 @@ interface PendingSoftClick {
   readonly timeout: ReturnType<typeof setTimeout>;
 }
 
-let pendingSoftClick: PendingSoftClick | undefined;
-
 export type ScriptActivationHandler = (item: TaskItem) => void | Promise<void>;
 
 export function createScriptActivationController(
   activate: ScriptActivationHandler,
 ): {
   readonly handleTreeCommand: (item: unknown) => void;
-  readonly handleSelectionChange: (selection: readonly unknown[]) => void;
   readonly dispose: () => void;
 } {
+  let pendingSoftClick: PendingSoftClick | undefined;
+
+  const clearPendingSoftClick = (): void => {
+    if (pendingSoftClick === undefined) {
+      return;
+    }
+
+    clearTimeout(pendingSoftClick.timeout);
+    pendingSoftClick = undefined;
+  };
+
+  const handleSoftDoubleClick = (item: TaskItem, onDoubleClick: () => void): void => {
+    const identity = getTaskIdentity(item.task);
+
+    if (pendingSoftClick !== undefined && pendingSoftClick.identity === identity) {
+      clearPendingSoftClick();
+      onDoubleClick();
+      return;
+    }
+
+    clearPendingSoftClick();
+    pendingSoftClick = {
+      identity,
+      timeout: setTimeout(() => {
+        pendingSoftClick = undefined;
+      }, SOFT_DOUBLE_CLICK_MS),
+    };
+  };
+
   return {
     handleTreeCommand(item: unknown): void {
       if (!(item instanceof TaskItem)) {
@@ -35,10 +61,8 @@ export function createScriptActivationController(
       const listOpenMode = readWorkbenchListOpenMode();
 
       if (clickMode === "singleClick") {
-        // When VS Code only opens on double-click, selection change handles activation.
-        if (listOpenMode === "doubleClick") {
-          return;
-        }
+        // TreeItem.command fires when the workbench opens the item. When
+        // workbench.list.openMode is doubleClick, that is on double click.
         void activate(item);
         return;
       }
@@ -53,24 +77,6 @@ export function createScriptActivationController(
       handleSoftDoubleClick(item, () => {
         void activate(item);
       });
-    },
-
-    handleSelectionChange(selection: readonly unknown[]): void {
-      if (readScriptClickMode() !== "singleClick") {
-        return;
-      }
-
-      // Only needed when TreeItem.command does not fire on the first click.
-      if (readWorkbenchListOpenMode() !== "doubleClick") {
-        return;
-      }
-
-      const item = selection[0];
-      if (!(item instanceof TaskItem)) {
-        return;
-      }
-
-      void activate(item);
     },
 
     dispose(): void {
@@ -100,31 +106,4 @@ export async function runConfiguredScriptAction(
   }
 
   await handlers.open(item);
-}
-
-function handleSoftDoubleClick(item: TaskItem, onDoubleClick: () => void): void {
-  const identity = getTaskIdentity(item.task);
-
-  if (pendingSoftClick !== undefined && pendingSoftClick.identity === identity) {
-    clearPendingSoftClick();
-    onDoubleClick();
-    return;
-  }
-
-  clearPendingSoftClick();
-  pendingSoftClick = {
-    identity,
-    timeout: setTimeout(() => {
-      pendingSoftClick = undefined;
-    }, SOFT_DOUBLE_CLICK_MS),
-  };
-}
-
-function clearPendingSoftClick(): void {
-  if (pendingSoftClick === undefined) {
-    return;
-  }
-
-  clearTimeout(pendingSoftClick.timeout);
-  pendingSoftClick = undefined;
 }

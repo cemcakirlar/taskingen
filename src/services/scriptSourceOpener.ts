@@ -2,8 +2,6 @@ import * as vscode from "vscode";
 import { findNpmScriptKeyRange } from "./npmScriptKeyLocator";
 import type { RunnableTask } from "./runner";
 
-export { findNpmScriptKeyRange } from "./npmScriptKeyLocator";
-
 export async function openTaskSource(task: RunnableTask): Promise<void> {
   if (task.kind === "shell") {
     const document = await vscode.workspace.openTextDocument(task.scriptUri);

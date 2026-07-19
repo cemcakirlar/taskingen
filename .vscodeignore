@@ -1,6 +1,7 @@
 .vscode/**
 src/**
 tsconfig.json
+tsconfig.test.json
 .gitignore
 .git/**
 **/*.map
@@ -8,3 +9,5 @@ tsconfig.json
 !out/**/*.js
 package-lock.json
 *.vsix
+test/**
+out-test/**

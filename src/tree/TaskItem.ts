@@ -93,9 +93,7 @@ export class TaskItem extends vscode.TreeItem {
       isRunning ? "play-circle" : task.kind === "npm" ? "symbol-event" : "file-code",
     );
     this.resourceUri = task.kind === "shell" ? task.scriptUri : task.packageJsonUri;
-    if (treeIdPrefix !== undefined) {
-      this.id = `${treeIdPrefix}:${getTaskIdentity(task)}`;
-    }
+    this.id = treeIdPrefix !== undefined ? `${treeIdPrefix}:${getTaskIdentity(task)}` : getTaskIdentity(task);
     this.command = {
       command: "taskingen.activateScript",
       title: "Activate Script",

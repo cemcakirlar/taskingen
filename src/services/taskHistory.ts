@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
-import { readTaskHistorySettings } from "./groupingSettings";
+import { readTaskHistorySettings } from "./settings";
 import type { NpmProject } from "./packageJsonScanner";
 import type { RunnableTask } from "./runner";
 import type { ShellScriptTask } from "./shellScriptScanner";
-import { getTaskIdentity, type IdentityTask } from "./taskIdentity";
+import { getLegacyTaskIdentities, getTaskIdentity, type IdentityTask } from "./taskIdentity";
 
 const HISTORY_STATE_KEY = "taskingen.taskHistory";
 const MAX_STORED_ENTRIES = 100;
@@ -14,6 +14,8 @@ export interface TaskHistoryEntry {
 }
 
 export class TaskHistoryStore {
+  private entries: TaskHistoryEntry[] | undefined;
+
   public constructor(private readonly workspaceState: vscode.Memento) {}
 
   public record(task: IdentityTask): void {
@@ -27,10 +29,12 @@ export class TaskHistoryStore {
       ...this.readEntries().filter((entry) => entry.identity !== identity),
     ].slice(0, MAX_STORED_ENTRIES);
 
+    this.entries = next;
     void this.workspaceState.update(HISTORY_STATE_KEY, next);
   }
 
   public async clear(): Promise<void> {
+    this.entries = [];
     await this.workspaceState.update(HISTORY_STATE_KEY, []);
   }
 
@@ -42,6 +46,7 @@ export class TaskHistoryStore {
 
     const tasksByIdentity = indexDiscoverableTasks(npmProjects, shellScripts);
     const recent: RunnableTask[] = [];
+    const seenIdentities = new Set<string>();
 
     for (const entry of this.readEntries()) {
       const task = tasksByIdentity.get(entry.identity);
@@ -49,6 +54,12 @@ export class TaskHistoryStore {
         continue;
       }
 
+      const canonicalIdentity = getTaskIdentity(task);
+      if (seenIdentities.has(canonicalIdentity)) {
+        continue;
+      }
+
+      seenIdentities.add(canonicalIdentity);
       recent.push(task);
       if (recent.length >= settings.maxItems) {
         break;
@@ -59,12 +70,13 @@ export class TaskHistoryStore {
   }
 
   private readEntries(): readonly TaskHistoryEntry[] {
-    const stored = this.workspaceState.get<unknown>(HISTORY_STATE_KEY);
-    if (!Array.isArray(stored)) {
-      return [];
+    if (this.entries !== undefined) {
+      return this.entries;
     }
 
-    return stored.filter(isTaskHistoryEntry);
+    const stored = this.workspaceState.get<unknown>(HISTORY_STATE_KEY);
+    this.entries = Array.isArray(stored) ? stored.filter(isTaskHistoryEntry) : [];
+    return this.entries;
   }
 }
 
@@ -78,12 +90,20 @@ export function taskBelongsToOpenWorkspace(task: IdentityTask): boolean {
   return folders.some((folder) => isPathInsideFolder(taskPath, folder.uri.fsPath));
 }
 
-function indexDiscoverableTasks(npmProjects: readonly NpmProject[], shellScripts: readonly ShellScriptTask[]): Map<string, RunnableTask> {
+export function indexDiscoverableTasks(
+  npmProjects: readonly NpmProject[],
+  shellScripts: readonly ShellScriptTask[],
+): Map<string, RunnableTask> {
   const tasksByIdentity = new Map<string, RunnableTask>();
 
   for (const project of npmProjects) {
     for (const script of project.scripts) {
       tasksByIdentity.set(getTaskIdentity(script), script);
+      for (const legacyIdentity of getLegacyTaskIdentities(script)) {
+        if (!tasksByIdentity.has(legacyIdentity)) {
+          tasksByIdentity.set(legacyIdentity, script);
+        }
+      }
     }
   }
 

@@ -1,5 +1,6 @@
 import * as path from "node:path";
 import * as vscode from "vscode";
+import { DISCOVERY_EXCLUDE } from "./packageJsonScanner";
 
 export interface ShellScriptTask {
   readonly kind: "shell";
@@ -9,10 +10,7 @@ export interface ShellScriptTask {
 }
 
 export async function scanShellScripts(): Promise<readonly ShellScriptTask[]> {
-  const scriptUris = await vscode.workspace.findFiles(
-    "**/*.{sh,bash}",
-    "{**/node_modules/**,**/.git/**}",
-  );
+  const scriptUris = await vscode.workspace.findFiles("**/*.{sh,bash}", DISCOVERY_EXCLUDE);
 
   return scriptUris
     .map((scriptUri) => ({

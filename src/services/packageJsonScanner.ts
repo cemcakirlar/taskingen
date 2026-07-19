@@ -1,4 +1,5 @@
 import * as path from "node:path";
+import { parse as parseJsonc } from "jsonc-parser";
 import * as vscode from "vscode";
 
 export interface NpmScriptTask {
@@ -21,45 +22,31 @@ interface PackageJsonShape {
   readonly scripts?: Record<string, unknown>;
 }
 
-export function parsePackageName(content: string): string | undefined {
-  const parsed: unknown = JSON.parse(content);
-  if (!isPackageJsonShape(parsed)) {
-    return undefined;
-  }
-
-  return resolvePackageName(parsed.name);
-}
-
-export function parsePackageScripts(content: string): ReadonlyArray<readonly [string, string]> {
-  const parsed: unknown = JSON.parse(content);
-  if (!isPackageJsonShape(parsed) || parsed.scripts === undefined) {
-    return [];
-  }
-
-  return Object.entries(parsed.scripts).filter(
-    (entry): entry is [string, string] => typeof entry[1] === "string",
-  );
-}
+/** Shared findFiles exclude for package.json and shell script discovery. */
+export const DISCOVERY_EXCLUDE =
+  "{**/node_modules/**,**/.git/**,**/dist/**,**/coverage/**,**/vendor/**,**/.venv/**,**/out/**}";
 
 export function resolveProjectName(packageName: string | undefined, cwd: string): string {
   return packageName ?? path.basename(cwd);
 }
 
+export function parsePackageJsonContent(content: string): PackageJsonShape | undefined {
+  const parsed: unknown = parseJsonc(content);
+  return isPackageJsonShape(parsed) ? parsed : undefined;
+}
+
 export async function scanPackageJsonProjects(
   outputChannel: vscode.OutputChannel,
 ): Promise<readonly NpmProject[]> {
-  const packageJsonUris = await vscode.workspace.findFiles(
-    "**/package.json",
-    "{**/node_modules/**,**/.git/**}",
-  );
+  const packageJsonUris = await vscode.workspace.findFiles("**/package.json", DISCOVERY_EXCLUDE);
   const projects: NpmProject[] = [];
 
   for (const packageJsonUri of packageJsonUris) {
     try {
       const bytes = await vscode.workspace.fs.readFile(packageJsonUri);
       const content = new TextDecoder().decode(bytes);
-      const parsed: unknown = JSON.parse(content);
-      if (!isPackageJsonShape(parsed)) {
+      const parsed = parsePackageJsonContent(content);
+      if (parsed === undefined) {
         continue;
       }
 
@@ -107,12 +94,12 @@ function resolvePackageName(value: unknown): string | undefined {
 }
 
 function isPackageJsonShape(value: unknown): value is PackageJsonShape {
-  if (typeof value !== "object" || value === null) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return false;
   }
 
   const scripts = (value as Record<string, unknown>).scripts;
-  return scripts === undefined || (typeof scripts === "object" && scripts !== null);
+  return scripts === undefined || (typeof scripts === "object" && scripts !== null && !Array.isArray(scripts));
 }
 
 function describeError(error: unknown): string {
