@@ -45,31 +45,36 @@ You can drag the view to the primary/secondary sidebar or panel. Use **Reset Loc
 
 ## Settings
 
-| Setting                                     | Default       | Description                                                                  |
-| ------------------------------------------- | ------------- | ---------------------------------------------------------------------------- |
-| `taskingen.npmScriptGrouping.separator`     | `:`           | Nest script names on this separator; empty disables grouping                 |
-| `taskingen.npmScriptGrouping.maxDepth`      | `1`           | Max group levels under each project (`0` = flat)                             |
-| `taskingen.npmProjectGrouping.groupByScope` | `true`        | Group `@scope/name` packages under `@scope`                                  |
-| `taskingen.scriptClickAction`               | `open`        | On activate: `open` source or `execute` the script                           |
-| `taskingen.scriptClickMode`                 | `doubleClick` | Activate on single or double click (also respects `workbench.list.openMode`) |
-| `taskingen.tree.defaultExpandedDepth`       | `1`           | How many tree levels start expanded                                          |
-| `taskingen.taskHistory.enabled`             | `true`        | Show the Task History group                                                  |
-| `taskingen.taskHistory.maxItems`            | `5`           | How many recent scripts to show                                              |
+| Setting                                     | Default       | Description                                                                                                                           |
+| ------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `taskingen.npmScriptGrouping.separator`     | `:`           | Nest script names on this separator; empty disables grouping                                                                          |
+| `taskingen.npmScriptGrouping.maxDepth`      | `1`           | Max group levels under each project (`0` = flat)                                                                                      |
+| `taskingen.npmProjectGrouping.groupByScope` | `true`        | Group `@scope/name` packages under `@scope`                                                                                           |
+| `taskingen.scriptClickAction`               | `open`        | On activate: `open` source or `execute` the script                                                                                    |
+| `taskingen.scriptClickMode`                 | `doubleClick` | Activate on single or double click (also respects `workbench.list.openMode`)                                                          |
+| `taskingen.tree.defaultExpandedDepth`       | `1`           | How many tree levels start expanded                                                                                                   |
+| `taskingen.taskHistory.enabled`             | `true`        | Show the Task History group                                                                                                           |
+| `taskingen.taskHistory.maxItems`            | `5`           | How many recent scripts to show                                                                                                       |
+| `taskingen.discovery.exclude`               | `[]`          | Exclude folders or paths from npm/shell discovery; supports entries like `legacy`, `legacy/**`, `packages/generated/**`, and `/tools` |
 
 ## Development
 
 ```bash
 npm install
-npm run compile    # build extension → out/
-npm run watch      # rebuild on change
-npm test           # unit tests
-npm run package    # produce .vsix
+npm run compile       # build extension → out/
+npm run compile:test  # typecheck tests → out-test/
+npm run watch         # rebuild on change
+npm test              # unit tests
+npm run package       # produce .vsix
 ```
+
+Test files live under `test/` and use `test/tsconfig.json` (extends `tsconfig.test.json`) so the editor picks up Node types; the root `tsconfig.json` only includes `src/`.
 
 Press **F5** in VS Code/Cursor (Extension Development Host) using the launch config in `.vscode/`.
 
 ## Notes
 
 - Discovery skips common noise paths such as `node_modules`, `.git`, `dist`, `coverage`, `vendor`, `.venv`, and `out`.
+- Add custom discovery excludes with `taskingen.discovery.exclude`. Use `/name` to match only the workspace root, or `name` / `name/**` to match that folder anywhere in the workspace.
 - Without terminal shell integration, Taskingen still starts the command; running state clears when you Stop or close the terminal.
 - Errors and skip reasons are logged to the **Taskingen** output channel.

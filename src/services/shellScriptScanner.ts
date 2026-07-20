@@ -1,6 +1,10 @@
 import * as path from "node:path";
 import * as vscode from "vscode";
-import { DISCOVERY_EXCLUDE } from "./packageJsonScanner";
+import {
+  getDiscoveryExcludeGlob,
+  isDiscoveryUriExcluded,
+} from "./discoveryExclude";
+import { readDiscoveryExcludePatterns } from "./settings";
 
 export interface ShellScriptTask {
   readonly kind: "shell";
@@ -10,7 +14,10 @@ export interface ShellScriptTask {
 }
 
 export async function scanShellScripts(): Promise<readonly ShellScriptTask[]> {
-  const scriptUris = await vscode.workspace.findFiles("**/*.{sh,bash}", DISCOVERY_EXCLUDE);
+  const excludePatterns = readDiscoveryExcludePatterns();
+  const scriptUris = (
+    await vscode.workspace.findFiles("**/*.{sh,bash}", getDiscoveryExcludeGlob(excludePatterns))
+  ).filter((uri) => !isDiscoveryUriExcluded(uri, excludePatterns));
 
   return scriptUris
     .map((scriptUri) => ({

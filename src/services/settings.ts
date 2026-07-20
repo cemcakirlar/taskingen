@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { parseDiscoveryExcludePatterns } from "./discoveryExclude";
 import { normalizeDefaultExpandedDepth } from "./treeExpansion";
 
 export interface NpmScriptGroupingSettings {
@@ -17,6 +18,12 @@ export type ScriptClickMode = "singleClick" | "doubleClick";
 export interface TaskHistorySettings {
   readonly enabled: boolean;
   readonly maxItems: number;
+}
+
+export function readDiscoveryExcludePatterns(
+  configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("taskingen"),
+): string[] {
+  return parseDiscoveryExcludePatterns(configuration.get("discovery.exclude"));
 }
 
 export function readNpmScriptGroupingSettings(
@@ -80,7 +87,8 @@ export function affectsTaskingenTree(event: vscode.ConfigurationChangeEvent): bo
     event.affectsConfiguration("taskingen.npmProjectGrouping.groupByScope") ||
     event.affectsConfiguration("taskingen.tree.defaultExpandedDepth") ||
     event.affectsConfiguration("taskingen.taskHistory.enabled") ||
-    event.affectsConfiguration("taskingen.taskHistory.maxItems")
+    event.affectsConfiguration("taskingen.taskHistory.maxItems") ||
+    event.affectsConfiguration("taskingen.discovery.exclude")
   );
 }
 

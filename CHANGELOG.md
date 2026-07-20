@@ -2,6 +2,16 @@
 
 All notable changes to Taskingen are documented in this file.
 
+## [0.1.2] - 2026-07-20
+
+### Added
+
+- `taskingen.discovery.exclude` setting documentation in the README, including example patterns for filtering folders and paths from discovery
+
+### Fixed
+
+- IDE TypeScript errors in `test/unit` (missing Node types for `node:assert/strict` and `node:test`) — added `test/tsconfig.json` extending `tsconfig.test.json`
+
 ## [0.1.1] - 2026-07-19
 
 ### Fixed

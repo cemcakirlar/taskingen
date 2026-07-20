@@ -2,7 +2,7 @@
   "name": "taskingen",
   "displayName": "Taskingen",
   "description": "Run npm and shell scripts from the Explorer sidebar.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "cemcakirlar",
   "icon": "media/icon.png",
   "license": "MIT",
@@ -47,7 +47,7 @@
     "jsonc-parser": "^3.3.1"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
+    "@types/node": "^24.13.3",
     "@types/vscode": "^1.125.0",
     "@vscode/vsce": "^3.9.2",
     "ovsx": "^1.0.2",
@@ -196,6 +196,14 @@
           "minimum": 1,
           "maximum": 50,
           "description": "How many recently run scripts to show under Task History."
+        },
+        "taskingen.discovery.exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Gitignore-style patterns for folders and paths to skip when discovering npm and shell scripts. Examples: legacy, legacy/**, packages/generated/**, /tools. Lines starting with # are ignored. A leading / limits the pattern to the workspace root."
         }
       }
     }

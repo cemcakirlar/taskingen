@@ -1,6 +1,8 @@
 import * as path from "node:path";
 import { parse as parseJsonc } from "jsonc-parser";
 import * as vscode from "vscode";
+import { getDiscoveryExcludeGlob, isDiscoveryUriExcluded } from "./discoveryExclude";
+import { readDiscoveryExcludePatterns } from "./settings";
 
 export interface NpmScriptTask {
   readonly kind: "npm";
@@ -22,23 +24,11 @@ interface PackageJsonShape {
   readonly scripts?: Record<string, unknown>;
 }
 
-/** Shared findFiles exclude for package.json and shell script discovery. */
-export const DISCOVERY_EXCLUDE =
-  "{**/node_modules/**,**/.git/**,**/dist/**,**/coverage/**,**/vendor/**,**/.venv/**,**/out/**}";
-
-export function resolveProjectName(packageName: string | undefined, cwd: string): string {
-  return packageName ?? path.basename(cwd);
-}
-
-export function parsePackageJsonContent(content: string): PackageJsonShape | undefined {
-  const parsed: unknown = parseJsonc(content);
-  return isPackageJsonShape(parsed) ? parsed : undefined;
-}
-
-export async function scanPackageJsonProjects(
-  outputChannel: vscode.OutputChannel,
-): Promise<readonly NpmProject[]> {
-  const packageJsonUris = await vscode.workspace.findFiles("**/package.json", DISCOVERY_EXCLUDE);
+export async function scanPackageJsonProjects(outputChannel: vscode.OutputChannel): Promise<readonly NpmProject[]> {
+  const excludePatterns = readDiscoveryExcludePatterns();
+  const packageJsonUris = (await vscode.workspace.findFiles("**/package.json", getDiscoveryExcludeGlob(excludePatterns))).filter(
+    (uri) => !isDiscoveryUriExcluded(uri, excludePatterns),
+  );
   const projects: NpmProject[] = [];
 
   for (const packageJsonUri of packageJsonUris) {
@@ -75,13 +65,20 @@ export async function scanPackageJsonProjects(
         scripts,
       });
     } catch (error: unknown) {
-      outputChannel.appendLine(
-        `Skipped ${packageJsonUri.fsPath}: ${describeError(error)}`,
-      );
+      outputChannel.appendLine(`Skipped ${packageJsonUri.fsPath}: ${describeError(error)}`);
     }
   }
 
   return projects.sort((left, right) => left.cwd.localeCompare(right.cwd));
+}
+
+export function resolveProjectName(packageName: string | undefined, cwd: string): string {
+  return packageName ?? path.basename(cwd);
+}
+
+export function parsePackageJsonContent(content: string): PackageJsonShape | undefined {
+  const parsed: unknown = parseJsonc(content);
+  return isPackageJsonShape(parsed) ? parsed : undefined;
 }
 
 function resolvePackageName(value: unknown): string | undefined {
