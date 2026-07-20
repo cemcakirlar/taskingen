@@ -37,6 +37,7 @@
     "vscode:prepublish": "npm run compile",
     "package": "vsce package",
     "publish": "vsce publish",
+    "publish:ovsx": "ovsx publish",
     "test": "npm run test:unit",
     "test:unit": "npm run compile:test && node --require ./test/helpers/register-vscode-mock.cjs --test 'out-test/test/unit/**/*.test.js'",
     "test:integration": "npm run compile:test && node --require ./test/helpers/register-vscode-mock.cjs --test 'out-test/test/integration/**/*.test.js'",
@@ -49,6 +50,7 @@
     "@types/node": "^24.0.0",
     "@types/vscode": "^1.125.0",
     "@vscode/vsce": "^3.9.2",
+    "ovsx": "^1.0.2",
     "typescript": "^5.8.0"
   },
   "contributes": {
