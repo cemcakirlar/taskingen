@@ -1,7 +1,7 @@
 import * as path from "node:path";
 import * as vscode from "vscode";
 
-/** Built-in findFiles exclude for package.json and shell script discovery. */
+/** Built-in findFiles exclude for package.json, deno.json, and shell script discovery. */
 export const BUILTIN_DISCOVERY_EXCLUDE = "{**/node_modules/**,**/.git/**,**/dist/**,**/coverage/**,**/vendor/**,**/.venv/**,**/out/**}";
 
 export function getDiscoveryExcludeGlob(patterns: readonly string[] = []): string {

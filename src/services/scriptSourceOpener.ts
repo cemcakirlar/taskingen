@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { findNpmScriptKeyRange } from "./npmScriptKeyLocator";
+import { findDenoTaskKeyRange, findNpmScriptKeyRange } from "./npmScriptKeyLocator";
 import type { RunnableTask } from "./runner";
 
 export async function openTaskSource(task: RunnableTask): Promise<void> {
@@ -9,9 +9,11 @@ export async function openTaskSource(task: RunnableTask): Promise<void> {
     return;
   }
 
-  const document = await vscode.workspace.openTextDocument(task.packageJsonUri);
+  const configUri = task.kind === "deno" ? task.denoJsonUri : task.packageJsonUri;
+  const document = await vscode.workspace.openTextDocument(configUri);
   const editor = await vscode.window.showTextDocument(document, { preview: false });
-  const keyRange = findNpmScriptKeyRange(document.getText(), task.name);
+  const keyRange =
+    task.kind === "deno" ? findDenoTaskKeyRange(document.getText(), task.name) : findNpmScriptKeyRange(document.getText(), task.name);
   if (keyRange === undefined) {
     return;
   }

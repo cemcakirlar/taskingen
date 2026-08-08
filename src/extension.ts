@@ -118,7 +118,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     applyTreeMessage(createEmptyStateMessage(provider.getCounts()));
   });
   const refreshCommand = vscode.commands.registerCommand("taskingen.refresh", refresh);
-  const watcher = vscode.workspace.createFileSystemWatcher("**/{package.json,*.sh,*.bash}");
+  const watcher = vscode.workspace.createFileSystemWatcher("**/{package.json,deno.json,deno.jsonc,*.sh,*.bash}");
   const changeListener = watcher.onDidChange(scheduleRefresh);
   const createListener = watcher.onDidCreate(scheduleRefresh);
   const deleteListener = watcher.onDidDelete(scheduleRefresh);
@@ -173,13 +173,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 export function deactivate(): void {}
 
 export function createEmptyStateMessage(counts: TaskCounts): string | undefined {
-  if (counts.npm > 0 || counts.shell > 0) {
+  if (counts.npm > 0 || counts.deno > 0 || counts.shell > 0) {
     return undefined;
   }
 
   return vscode.workspace.workspaceFolders === undefined
-    ? "Open a folder to discover npm and shell scripts."
-    : "No npm or shell scripts found in this workspace.";
+    ? "Open a folder to discover npm, Deno, and shell scripts."
+    : "No npm, Deno, or shell scripts found in this workspace.";
 }
 
 function describeError(error: unknown): string {

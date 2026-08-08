@@ -5,16 +5,21 @@ export interface TextOffsetRange {
   readonly length: number;
 }
 
-export function findNpmScriptKeyRange(
-  content: string,
-  scriptName: string,
-): TextOffsetRange | undefined {
+export function findNpmScriptKeyRange(content: string, scriptName: string): TextOffsetRange | undefined {
+  return findJsoncPropertyKeyRange(content, ["scripts", scriptName]);
+}
+
+export function findDenoTaskKeyRange(content: string, taskName: string): TextOffsetRange | undefined {
+  return findJsoncPropertyKeyRange(content, ["tasks", taskName]);
+}
+
+export function findJsoncPropertyKeyRange(content: string, path: readonly (string | number)[]): TextOffsetRange | undefined {
   const root = parseTree(content);
   if (root === undefined) {
     return undefined;
   }
 
-  const valueNode = findNodeAtLocation(root, ["scripts", scriptName]);
+  const valueNode = findNodeAtLocation(root, [...path]);
   const keyNode = getPropertyKeyNode(valueNode);
   if (keyNode === undefined || keyNode.length <= 0) {
     return undefined;

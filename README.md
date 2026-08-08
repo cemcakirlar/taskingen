@@ -1,18 +1,19 @@
 # Taskingen
 
-Run npm and shell scripts from the Explorer sidebar in VS Code / Cursor.
+Run npm, Deno, and shell scripts from the Explorer sidebar in VS Code / Cursor.
 
-Taskingen discovers `package.json` scripts and `*.sh` / `*.bash` files in your workspace, shows them in a dedicated tree view, and runs them in dedicated terminals — with open, stop, refresh, and recent-history support.
+Taskingen discovers `package.json` scripts, `deno.json` / `deno.jsonc` tasks, and `*.sh` / `*.bash` files in your workspace, shows them in a dedicated tree view, and runs them in dedicated terminals — with open, stop, refresh, and recent-history support.
 
 ## Features
 
 - **npm scripts** — Scans all `package.json` files (JSONC supported), detects npm / pnpm / yarn from lockfiles, and runs `pm run <script>`
+- **Deno tasks** — Scans `deno.json` / `deno.jsonc` `tasks` (string or `{ command, description }`), and runs `deno task <name>`
 - **Shell scripts** — Discovers `*.sh` and `*.bash` files and runs them with bash
-- **Grouped tree** — Nest npm scripts by separator (e.g. `test:unit`), group scoped packages (`@scope/...`), and control default expand depth
+- **Grouped tree** — Nest npm/Deno script names by separator (e.g. `test:unit`), group scoped packages (`@scope/...`), and control default expand depth
 - **Run / stop / open** — Inline actions on each script; running scripts show a stop control
 - **Click to activate** — Configure whether clicking a script opens the source or runs it (single or double click)
 - **Task History** — Recently run scripts from the current workspace at the top of the tree
-- **Live refresh** — Watches `package.json` and shell script changes (debounced); also refreshes on workspace folder and relevant setting changes
+- **Live refresh** — Watches `package.json`, `deno.json` / `deno.jsonc`, and shell script changes (debounced); also refreshes on workspace folder and relevant setting changes
 
 ## Install (local)
 
@@ -21,11 +22,56 @@ Taskingen discovers `package.json` scripts and `*.sh` / `*.bash` files in your w
 
 Requires VS Code / Cursor `^1.125.0`.
 
+## Publish (manual VSIX upload)
+
+Build the package first:
+
+```bash
+npm run package   # → taskingen-<version>.vsix
+```
+
+Publisher id in `package.json` is `cemcakirlar`. Use the same id on both registries.
+
+### Visual Studio Marketplace (VS Code)
+
+1. Open the [Marketplace publisher management](https://marketplace.visualstudio.com/manage) page and sign in with your Microsoft account.
+2. Create a publisher if needed (**Create publisher**). The **ID** must match `publisher` in `package.json` (`cemcakirlar`).
+3. Select that publisher → **New extension** / upload → choose `taskingen-<version>.vsix`.
+4. Confirm the listing details, then wait for Marketplace validation to finish.
+
+Later versions: upload a new VSIX on the same extension page (version in the VSIX must be higher than the published one).
+
+Docs: [Publishing Extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension).
+
+### Open VSX (Cursor and other VS Code-compatible editors)
+
+Open VSX expects an existing `.vsix` uploaded with the `ovsx` CLI (there is no separate “drag file into the store” flow beyond this).
+
+One-time setup:
+
+1. Register an [Eclipse account](https://accounts.eclipse.org/user/register) (set the same GitHub username you use on Open VSX).
+2. Sign in to [open-vsx.org](https://open-vsx.org) with GitHub → [Profile](https://open-vsx.org/user-settings/profile) → **Log in with Eclipse** → sign the **Publisher Agreement**.
+3. Create an [access token](https://open-vsx.org/user-settings/tokens) (**Generate New Token**; copy it once).
+4. Create the namespace once (must match `publisher`):
+
+```bash
+npx ovsx create-namespace cemcakirlar -p <token>
+```
+
+Upload the VSIX:
+
+```bash
+npx ovsx publish taskingen-<version>.vsix -p <token>
+# or: npm run publish:ovsx -- taskingen-<version>.vsix -p <token>
+```
+
+Docs: [Publishing Extensions (Open VSX)](https://github.com/eclipse/openvsx/wiki/Publishing-Extensions).
+
 ## Usage
 
 1. Open a folder or multi-root workspace.
 2. In the **Explorer** sidebar, find the **Taskingen** view (below the file tree).
-3. Expand **npm Scripts** or **Shell Scripts**, then:
+3. Expand **npm Scripts**, **Deno Tasks**, or **Shell Scripts**, then:
    - Use the inline **Open** / **Run** / **Stop** icons, or
    - Activate a script name (see [Settings](#settings) for click behavior).
 4. **Task History** lists recently run scripts; clear it from the history group’s inline action.
@@ -35,27 +81,27 @@ You can drag the view to the primary/secondary sidebar or panel. Use **Reset Loc
 
 ### Commands
 
-| Command                         | Description                                                    |
-| ------------------------------- | -------------------------------------------------------------- |
-| `Taskingen: Refresh Scripts`    | Rescan the workspace                                           |
-| `Taskingen: Open Script Source` | Open `package.json` (script key highlighted) or the shell file |
-| `Taskingen: Run Script`         | Run in a dedicated terminal                                    |
-| `Taskingen: Stop Script`        | Soft-stop (Ctrl+C) and clear running state                     |
-| `Taskingen: Clear Task History` | Clear stored recent runs for this workspace                    |
+| Command                         | Description                                                           |
+| ------------------------------- | --------------------------------------------------------------------- |
+| `Taskingen: Refresh Scripts`    | Rescan the workspace                                                  |
+| `Taskingen: Open Script Source` | Open `package.json` / `deno.json` (key highlighted) or the shell file |
+| `Taskingen: Run Script`         | Run in a dedicated terminal                                           |
+| `Taskingen: Stop Script`        | Soft-stop (Ctrl+C) and clear running state                            |
+| `Taskingen: Clear Task History` | Clear stored recent runs for this workspace                           |
 
 ## Settings
 
-| Setting                                     | Default       | Description                                                                                                                           |
-| ------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `taskingen.npmScriptGrouping.separator`     | `:`           | Nest script names on this separator; empty disables grouping                                                                          |
-| `taskingen.npmScriptGrouping.maxDepth`      | `1`           | Max group levels under each project (`0` = flat)                                                                                      |
-| `taskingen.npmProjectGrouping.groupByScope` | `true`        | Group `@scope/name` packages under `@scope`                                                                                           |
-| `taskingen.scriptClickAction`               | `open`        | On activate: `open` source or `execute` the script                                                                                    |
-| `taskingen.scriptClickMode`                 | `doubleClick` | Activate on single or double click (also respects `workbench.list.openMode`)                                                          |
-| `taskingen.tree.defaultExpandedDepth`       | `1`           | How many tree levels start expanded                                                                                                   |
-| `taskingen.taskHistory.enabled`             | `true`        | Show the Task History group                                                                                                           |
-| `taskingen.taskHistory.maxItems`            | `5`           | How many recent scripts to show                                                                                                       |
-| `taskingen.discovery.exclude`               | `[]`          | Exclude folders or paths from npm/shell discovery; supports entries like `legacy`, `legacy/**`, `packages/generated/**`, and `/tools` |
+| Setting                                     | Default       | Description                                                                                                                                |
+| ------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `taskingen.npmScriptGrouping.separator`     | `:`           | Nest npm script and Deno task names on this separator; empty disables grouping                                                             |
+| `taskingen.npmScriptGrouping.maxDepth`      | `1`           | Max group levels under each project (`0` = flat)                                                                                           |
+| `taskingen.npmProjectGrouping.groupByScope` | `true`        | Group `@scope/name` packages under `@scope`                                                                                                |
+| `taskingen.scriptClickAction`               | `open`        | On activate: `open` source or `execute` the script                                                                                         |
+| `taskingen.scriptClickMode`                 | `doubleClick` | Activate on single or double click (also respects `workbench.list.openMode`)                                                               |
+| `taskingen.tree.defaultExpandedDepth`       | `1`           | How many tree levels start expanded                                                                                                        |
+| `taskingen.taskHistory.enabled`             | `true`        | Show the Task History group                                                                                                                |
+| `taskingen.taskHistory.maxItems`            | `5`           | How many recent scripts to show                                                                                                            |
+| `taskingen.discovery.exclude`               | `[]`          | Exclude folders or paths from npm/Deno/shell discovery; supports entries like `legacy`, `legacy/**`, `packages/generated/**`, and `/tools` |
 
 ## Development
 

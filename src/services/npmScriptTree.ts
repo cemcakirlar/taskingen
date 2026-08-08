@@ -1,39 +1,47 @@
 import type { NpmScriptTask } from "./packageJsonScanner";
 
-export interface NpmScriptGroupNode {
+export interface ScriptGroupNode<T> {
   readonly kind: "group";
   readonly label: string;
-  readonly children: readonly NpmScriptTreeNode[];
+  readonly children: readonly ScriptTreeNode<T>[];
 }
 
-export interface NpmScriptLeafNode {
+export interface ScriptLeafNode<T> {
   readonly kind: "script";
   readonly label: string;
-  readonly task: NpmScriptTask;
+  readonly task: T;
 }
 
-export type NpmScriptTreeNode = NpmScriptGroupNode | NpmScriptLeafNode;
+export type ScriptTreeNode<T> = ScriptGroupNode<T> | ScriptLeafNode<T>;
 
-interface MutableGroupNode {
+export type NpmScriptGroupNode = ScriptGroupNode<NpmScriptTask>;
+export type NpmScriptLeafNode = ScriptLeafNode<NpmScriptTask>;
+export type NpmScriptTreeNode = ScriptTreeNode<NpmScriptTask>;
+
+interface MutableGroupNode<T> {
   readonly kind: "group";
   readonly label: string;
-  readonly children: MutableTreeNode[];
+  readonly children: MutableTreeNode<T>[];
 }
 
-interface MutableLeafNode {
+interface MutableLeafNode<T> {
   readonly kind: "script";
   readonly label: string;
-  readonly task: NpmScriptTask;
+  readonly task: T;
 }
 
-type MutableTreeNode = MutableGroupNode | MutableLeafNode;
+type MutableTreeNode<T> = MutableGroupNode<T> | MutableLeafNode<T>;
 
-export function buildNpmScriptTree(
-  scripts: readonly NpmScriptTask[],
+export function buildNpmScriptTree(scripts: readonly NpmScriptTask[], separator: string, maxDepth: number): readonly NpmScriptTreeNode[] {
+  return buildScriptTree(scripts, separator, maxDepth);
+}
+
+export function buildScriptTree<T extends { readonly name: string }>(
+  scripts: readonly T[],
   separator: string,
   maxDepth: number,
-): readonly NpmScriptTreeNode[] {
-  const root: MutableTreeNode[] = [];
+): readonly ScriptTreeNode<T>[] {
+  const root: MutableTreeNode<T>[] = [];
   const normalizedDepth = normalizeMaxDepth(maxDepth);
   const groupingEnabled = separator.length > 0 && normalizedDepth > 0;
 
@@ -74,26 +82,18 @@ function canGroupSegments(segments: readonly string[], maxDepth: number): boolea
   return segments.every((segment) => segment.length > 0);
 }
 
-function insertGroupedScript(
-  nodes: MutableTreeNode[],
-  groupSegments: readonly string[],
-  leafLabel: string,
-  task: NpmScriptTask,
-): void {
+function insertGroupedScript<T>(nodes: MutableTreeNode<T>[], groupSegments: readonly string[], leafLabel: string, task: T): void {
   let currentLevel = nodes;
 
   for (const segment of groupSegments) {
-    const existing = currentLevel.find(
-      (node): node is MutableGroupNode =>
-        node.kind === "group" && node.label === segment,
-    );
+    const existing = currentLevel.find((node): node is MutableGroupNode<T> => node.kind === "group" && node.label === segment);
 
     if (existing !== undefined) {
       currentLevel = existing.children;
       continue;
     }
 
-    const created: MutableGroupNode = {
+    const created: MutableGroupNode<T> = {
       kind: "group",
       label: segment,
       children: [],
@@ -105,13 +105,13 @@ function insertGroupedScript(
   currentLevel.push({ kind: "script", label: leafLabel, task });
 }
 
-function sortTreeNodes(nodes: readonly MutableTreeNode[]): NpmScriptTreeNode[] {
+function sortTreeNodes<T>(nodes: readonly MutableTreeNode<T>[]): ScriptTreeNode<T>[] {
   const groups = nodes
-    .filter((node): node is MutableGroupNode => node.kind === "group")
+    .filter((node): node is MutableGroupNode<T> => node.kind === "group")
     .slice()
     .sort((left, right) => left.label.localeCompare(right.label))
     .map(
-      (node): NpmScriptGroupNode => ({
+      (node): ScriptGroupNode<T> => ({
         kind: "group",
         label: node.label,
         children: sortTreeNodes(node.children),
@@ -119,7 +119,7 @@ function sortTreeNodes(nodes: readonly MutableTreeNode[]): NpmScriptTreeNode[] {
     );
 
   const scripts = nodes
-    .filter((node): node is MutableLeafNode => node.kind === "script")
+    .filter((node): node is MutableLeafNode<T> => node.kind === "script")
     .slice()
     .sort((left, right) => left.label.localeCompare(right.label));
 

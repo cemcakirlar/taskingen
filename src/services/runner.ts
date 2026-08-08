@@ -1,16 +1,13 @@
 import { clearTimeout, setTimeout } from "node:timers";
 import * as vscode from "vscode";
+import type { DenoTask } from "./denoJsonScanner";
 import { detectPackageManager } from "./packageManager";
 import type { NpmScriptTask } from "./packageJsonScanner";
 import type { RunningTaskRegistry } from "./runningTaskRegistry";
 import type { ShellScriptTask } from "./shellScriptScanner";
-import {
-  getTaskIdentity,
-  getTaskShortLabel,
-  getTaskTerminalName,
-} from "./taskIdentity";
+import { getTaskIdentity, getTaskShortLabel, getTaskTerminalName } from "./taskIdentity";
 
-export type RunnableTask = NpmScriptTask | ShellScriptTask;
+export type RunnableTask = NpmScriptTask | DenoTask | ShellScriptTask;
 
 export interface RunTaskResult {
   readonly status: "started" | "already-running";
@@ -26,14 +23,15 @@ export async function buildTaskCommand(task: RunnableTask): Promise<string> {
     return `bash ${quoteShellArgument(task.scriptUri.fsPath)}`;
   }
 
+  if (task.kind === "deno") {
+    return `deno task ${quoteShellArgument(task.name)}`;
+  }
+
   const packageManager = await detectPackageManager(task.cwd);
   return `${packageManager} run ${quoteShellArgument(task.name)}`;
 }
 
-export async function runTask(
-  task: RunnableTask,
-  registry: RunningTaskRegistry,
-): Promise<RunTaskResult> {
+export async function runTask(task: RunnableTask, registry: RunningTaskRegistry): Promise<RunTaskResult> {
   const identity = getTaskIdentity(task);
   const existing = registry.get(task);
   if (existing !== undefined) {
@@ -66,10 +64,7 @@ export async function runTask(
   return { status: "started", terminal };
 }
 
-export function stopTask(
-  task: RunnableTask,
-  registry: RunningTaskRegistry,
-): boolean {
+export function stopTask(task: RunnableTask, registry: RunningTaskRegistry): boolean {
   const entry = registry.get(task);
   if (entry === undefined) {
     return false;
@@ -83,11 +78,7 @@ export function stopTask(
   return true;
 }
 
-async function executeInTerminal(
-  terminal: vscode.Terminal,
-  commandLine: string,
-  onTaskEnded: () => void,
-): Promise<void> {
+async function executeInTerminal(terminal: vscode.Terminal, commandLine: string, onTaskEnded: () => void): Promise<void> {
   const shellIntegration = await waitForShellIntegration(terminal, 3000);
   const disposables: vscode.Disposable[] = [];
   let ended = false;
@@ -131,10 +122,7 @@ async function executeInTerminal(
   );
 }
 
-async function waitForShellIntegration(
-  terminal: vscode.Terminal,
-  timeoutMs: number,
-): Promise<vscode.TerminalShellIntegration | undefined> {
+async function waitForShellIntegration(terminal: vscode.Terminal, timeoutMs: number): Promise<vscode.TerminalShellIntegration | undefined> {
   if (terminal.shellIntegration !== undefined) {
     return terminal.shellIntegration;
   }

@@ -1,3 +1,4 @@
+import type { DenoProject } from "./denoJsonScanner";
 import type { NpmProject } from "./packageJsonScanner";
 
 export interface ScopedPackageName {
@@ -5,19 +6,32 @@ export interface ScopedPackageName {
   readonly packageName: string;
 }
 
-export interface NpmProjectLeafNode {
+export interface NamedProject {
+  readonly name: string;
+  readonly cwd: string;
+}
+
+export interface ProjectLeafNode<T extends NamedProject> {
   readonly kind: "project";
-  readonly project: NpmProject;
+  readonly project: T;
   readonly displayName: string;
 }
 
-export interface NpmScopeNode {
+export interface ProjectScopeNode<T extends NamedProject> {
   readonly kind: "scope";
   readonly scope: string;
-  readonly projects: readonly NpmProjectLeafNode[];
+  readonly projects: readonly ProjectLeafNode<T>[];
 }
 
-export type NpmProjectTreeNode = NpmScopeNode | NpmProjectLeafNode;
+export type ProjectTreeNode<T extends NamedProject> = ProjectScopeNode<T> | ProjectLeafNode<T>;
+
+export type NpmProjectLeafNode = ProjectLeafNode<NpmProject>;
+export type NpmScopeNode = ProjectScopeNode<NpmProject>;
+export type NpmProjectTreeNode = ProjectTreeNode<NpmProject>;
+
+export type DenoProjectLeafNode = ProjectLeafNode<DenoProject>;
+export type DenoScopeNode = ProjectScopeNode<DenoProject>;
+export type DenoProjectTreeNode = ProjectTreeNode<DenoProject>;
 
 export function parseScopedPackageName(name: string): ScopedPackageName | undefined {
   if (!name.startsWith("@")) {
@@ -42,14 +56,22 @@ export function parseScopedPackageName(name: string): ScopedPackageName | undefi
   return { scope, packageName };
 }
 
-export function buildNpmProjectTree(
-  projects: readonly NpmProject[],
+export function buildNpmProjectTree(projects: readonly NpmProject[], groupByScope: boolean): readonly NpmProjectTreeNode[] {
+  return buildScopedProjectTree(projects, groupByScope);
+}
+
+export function buildDenoProjectTree(projects: readonly DenoProject[], groupByScope: boolean): readonly DenoProjectTreeNode[] {
+  return buildScopedProjectTree(projects, groupByScope);
+}
+
+export function buildScopedProjectTree<T extends NamedProject>(
+  projects: readonly T[],
   groupByScope: boolean,
-): readonly NpmProjectTreeNode[] {
+): readonly ProjectTreeNode<T>[] {
   if (!groupByScope) {
     return projects
       .map(
-        (project): NpmProjectLeafNode => ({
+        (project): ProjectLeafNode<T> => ({
           kind: "project",
           project,
           displayName: project.name,
@@ -58,8 +80,8 @@ export function buildNpmProjectTree(
       .sort((left, right) => compareByDisplayThenCwd(left, right));
   }
 
-  const scopes = new Map<string, NpmProjectLeafNode[]>();
-  const unscoped: NpmProjectLeafNode[] = [];
+  const scopes = new Map<string, ProjectLeafNode<T>[]>();
+  const unscoped: ProjectLeafNode<T>[] = [];
 
   for (const project of projects) {
     const scoped = parseScopedPackageName(project.name);
@@ -81,27 +103,20 @@ export function buildNpmProjectTree(
     scopes.set(scoped.scope, existing);
   }
 
-  const scopeNodes: NpmScopeNode[] = [...scopes.entries()]
+  const scopeNodes: ProjectScopeNode<T>[] = [...scopes.entries()]
     .map(([scope, scopedProjects]) => ({
       kind: "scope" as const,
       scope,
-      projects: scopedProjects
-        .slice()
-        .sort((left, right) => compareByDisplayThenCwd(left, right)),
+      projects: scopedProjects.slice().sort((left, right) => compareByDisplayThenCwd(left, right)),
     }))
     .sort((left, right) => left.scope.localeCompare(right.scope));
 
-  const unscopedNodes = unscoped
-    .slice()
-    .sort((left, right) => compareByDisplayThenCwd(left, right));
+  const unscopedNodes = unscoped.slice().sort((left, right) => compareByDisplayThenCwd(left, right));
 
   return [...scopeNodes, ...unscopedNodes];
 }
 
-function compareByDisplayThenCwd(
-  left: NpmProjectLeafNode,
-  right: NpmProjectLeafNode,
-): number {
+function compareByDisplayThenCwd<T extends NamedProject>(left: ProjectLeafNode<T>, right: ProjectLeafNode<T>): number {
   const displayOrder = left.displayName.localeCompare(right.displayName);
   if (displayOrder !== 0) {
     return displayOrder;

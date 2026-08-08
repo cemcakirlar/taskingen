@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import type { DenoProject } from "./denoJsonScanner";
 import { readTaskHistorySettings } from "./settings";
 import type { NpmProject } from "./packageJsonScanner";
 import type { RunnableTask } from "./runner";
@@ -38,13 +39,17 @@ export class TaskHistoryStore {
     await this.workspaceState.update(HISTORY_STATE_KEY, []);
   }
 
-  public resolveRecentTasks(npmProjects: readonly NpmProject[], shellScripts: readonly ShellScriptTask[]): readonly RunnableTask[] {
+  public resolveRecentTasks(
+    npmProjects: readonly NpmProject[],
+    denoProjects: readonly DenoProject[],
+    shellScripts: readonly ShellScriptTask[],
+  ): readonly RunnableTask[] {
     const settings = readTaskHistorySettings();
     if (!settings.enabled) {
       return [];
     }
 
-    const tasksByIdentity = indexDiscoverableTasks(npmProjects, shellScripts);
+    const tasksByIdentity = indexDiscoverableTasks(npmProjects, denoProjects, shellScripts);
     const recent: RunnableTask[] = [];
     const seenIdentities = new Set<string>();
 
@@ -92,6 +97,7 @@ export function taskBelongsToOpenWorkspace(task: IdentityTask): boolean {
 
 export function indexDiscoverableTasks(
   npmProjects: readonly NpmProject[],
+  denoProjects: readonly DenoProject[],
   shellScripts: readonly ShellScriptTask[],
 ): Map<string, RunnableTask> {
   const tasksByIdentity = new Map<string, RunnableTask>();
@@ -104,6 +110,12 @@ export function indexDiscoverableTasks(
           tasksByIdentity.set(legacyIdentity, script);
         }
       }
+    }
+  }
+
+  for (const project of denoProjects) {
+    for (const task of project.tasks) {
+      tasksByIdentity.set(getTaskIdentity(task), task);
     }
   }
 

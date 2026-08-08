@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { choosePackageManager } from "../../src/services/packageManager";
 import { parsePackageJsonContent } from "../../src/services/packageJsonScanner";
-import { quoteShellArgument } from "../../src/services/runner";
+import { buildTaskCommand, quoteShellArgument } from "../../src/services/runner";
 
 describe("choosePackageManager", () => {
   it("prefers pnpm, then yarn, then npm", () => {
@@ -16,6 +16,22 @@ describe("quoteShellArgument", () => {
   it("wraps values in single quotes and escapes embedded quotes", () => {
     assert.equal(quoteShellArgument("plain"), "'plain'");
     assert.equal(quoteShellArgument("it's"), "'it'\"'\"'s'");
+  });
+});
+
+describe("buildTaskCommand", () => {
+  it("builds deno task commands", async () => {
+    const command = await buildTaskCommand({
+      kind: "deno",
+      name: "dev",
+      command: "deno run main.ts",
+      denoJsonUri: {
+        fsPath: "/app/deno.json",
+        toString: () => "file:///app/deno.json",
+      } as import("../../src/services/denoJsonScanner").DenoTask["denoJsonUri"],
+      cwd: "/app",
+    });
+    assert.equal(command, "deno task 'dev'");
   });
 });
 

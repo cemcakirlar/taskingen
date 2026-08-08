@@ -1,12 +1,13 @@
 import * as vscode from "vscode";
+import type { DenoProject } from "../services/denoJsonScanner";
 import type { NpmProject } from "../services/packageJsonScanner";
-import type { NpmProjectLeafNode } from "../services/npmProjectTree";
-import type { NpmScriptTreeNode } from "../services/npmScriptTree";
+import type { DenoProjectLeafNode, NpmProjectLeafNode } from "../services/npmProjectTree";
+import type { ScriptTreeNode } from "../services/npmScriptTree";
 import type { RunnableTask } from "../services/runner";
 import { getTaskIdentity } from "../services/taskIdentity";
 import { isTreeLevelExpanded } from "../services/treeExpansion";
 
-export type TaskGroupKind = "npm" | "shell" | "history";
+export type TaskGroupKind = "npm" | "deno" | "shell" | "history";
 
 export class TaskGroupItem extends vscode.TreeItem {
   public constructor(
@@ -37,7 +38,23 @@ export class NpmScopeItem extends vscode.TreeItem {
     this.iconPath = new vscode.ThemeIcon("organization");
     this.description = `${projects.length}`;
     this.tooltip = scope;
-    this.id = `expand:${defaultExpandedDepth}:scope:${scope}`;
+    this.id = `expand:${defaultExpandedDepth}:scope:npm:${scope}`;
+  }
+}
+
+export class DenoScopeItem extends vscode.TreeItem {
+  public constructor(
+    public readonly scope: string,
+    public readonly projects: readonly DenoProjectLeafNode[],
+    public readonly depth: number,
+    defaultExpandedDepth: number,
+  ) {
+    super(scope, collapsibleStateForDepth(depth, defaultExpandedDepth));
+    this.contextValue = "denoScope";
+    this.iconPath = new vscode.ThemeIcon("organization");
+    this.description = `${projects.length}`;
+    this.tooltip = scope;
+    this.id = `expand:${defaultExpandedDepth}:scope:deno:${scope}`;
   }
 }
 
@@ -59,22 +76,42 @@ export class NpmProjectItem extends vscode.TreeItem {
   }
 }
 
-export class NpmScriptGroupItem extends vscode.TreeItem {
+export class DenoProjectItem extends vscode.TreeItem {
+  public constructor(
+    public readonly project: DenoProject,
+    displayName: string,
+    public readonly depth: number,
+    defaultExpandedDepth: number,
+  ) {
+    super(displayName, collapsibleStateForDepth(depth, defaultExpandedDepth));
+    this.description = formatWorkspaceRelativeFolder(project.cwd);
+    this.tooltip = `${project.name}\n${project.cwd}`;
+    this.iconPath = vscode.ThemeIcon.Folder;
+    this.resourceUri = vscode.Uri.file(project.cwd);
+    this.contextValue = "denoProject";
+    this.id = `expand:${defaultExpandedDepth}:project:${project.denoJsonUri.toString()}`;
+  }
+}
+
+export class ScriptGroupItem extends vscode.TreeItem {
   public constructor(
     public readonly labelText: string,
-    public readonly children: readonly NpmScriptTreeNode[],
+    public readonly children: readonly ScriptTreeNode<RunnableTask>[],
     public readonly depth: number,
     defaultExpandedDepth: number,
     public readonly identityPath: string,
     public readonly folderUri: vscode.Uri,
   ) {
     super(labelText, collapsibleStateForDepth(depth, defaultExpandedDepth));
-    this.contextValue = "npmScriptGroup";
+    this.contextValue = "scriptGroup";
     this.iconPath = vscode.ThemeIcon.Folder;
     this.resourceUri = folderUri;
     this.id = `expand:${defaultExpandedDepth}:script-group:${identityPath}`;
   }
 }
+
+/** @deprecated Prefer ScriptGroupItem; kept as an alias for existing call sites. */
+export class NpmScriptGroupItem extends ScriptGroupItem {}
 
 export class TaskItem extends vscode.TreeItem {
   public constructor(
@@ -85,14 +122,12 @@ export class TaskItem extends vscode.TreeItem {
   ) {
     super(displayLabel, vscode.TreeItemCollapsibleState.None);
 
-    const baseContext = task.kind === "npm" ? "npmScript" : "shellScript";
+    const baseContext = contextValueForTask(task);
     this.contextValue = isRunning ? `${baseContext}Running` : baseContext;
     this.description = describeTaskItem(task, isRunning);
     this.tooltip = buildTaskTooltip(task, isRunning);
-    this.iconPath = new vscode.ThemeIcon(
-      isRunning ? "play-circle" : task.kind === "npm" ? "symbol-event" : "file-code",
-    );
-    this.resourceUri = task.kind === "shell" ? task.scriptUri : task.packageJsonUri;
+    this.iconPath = new vscode.ThemeIcon(isRunning ? "play-circle" : task.kind === "shell" ? "file-code" : "symbol-event");
+    this.resourceUri = task.kind === "shell" ? task.scriptUri : task.kind === "deno" ? task.denoJsonUri : task.packageJsonUri;
     this.id = treeIdPrefix !== undefined ? `${treeIdPrefix}:${getTaskIdentity(task)}` : getTaskIdentity(task);
     this.command = {
       command: "taskingen.activateScript",
@@ -102,16 +137,15 @@ export class TaskItem extends vscode.TreeItem {
   }
 }
 
-export type TaskTreeItem =
-  | TaskGroupItem
-  | NpmScopeItem
-  | NpmProjectItem
-  | NpmScriptGroupItem
-  | TaskItem;
+export type TaskTreeItem = TaskGroupItem | NpmScopeItem | DenoScopeItem | NpmProjectItem | DenoProjectItem | ScriptGroupItem | TaskItem;
 
 function iconForGroup(groupKind: TaskGroupKind): string {
   if (groupKind === "npm") {
     return "package";
+  }
+
+  if (groupKind === "deno") {
+    return "symbol-misc";
   }
 
   if (groupKind === "shell") {
@@ -123,6 +157,18 @@ function iconForGroup(groupKind: TaskGroupKind): string {
 
 function contextValueForGroup(groupKind: TaskGroupKind): string | undefined {
   return groupKind === "history" ? "taskHistory" : undefined;
+}
+
+function contextValueForTask(task: RunnableTask): string {
+  if (task.kind === "npm") {
+    return "npmScript";
+  }
+
+  if (task.kind === "deno") {
+    return "denoScript";
+  }
+
+  return "shellScript";
 }
 
 function describeTaskItem(task: RunnableTask, isRunning: boolean): string | undefined {
@@ -137,6 +183,11 @@ function buildTaskTooltip(task: RunnableTask, isRunning: boolean): string {
   const runningPrefix = isRunning ? "Running\n" : "";
   if (task.kind === "npm") {
     return `${runningPrefix}${task.name}\n${task.command}\n${task.packageJsonUri.fsPath}`;
+  }
+
+  if (task.kind === "deno") {
+    const descriptionLine = task.description !== undefined ? `${task.description}\n` : "";
+    return `${runningPrefix}${task.name}\n${descriptionLine}${task.command}\n${task.denoJsonUri.fsPath}`;
   }
 
   return `${runningPrefix}${task.scriptUri.fsPath}`;

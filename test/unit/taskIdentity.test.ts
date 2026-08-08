@@ -1,11 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import {
-  getLegacyTaskIdentities,
-  getTaskIdentity,
-  getTaskShortLabel,
-  getTaskTerminalName,
-} from "../../src/services/taskIdentity";
+import { getLegacyTaskIdentities, getTaskIdentity, getTaskShortLabel, getTaskTerminalName } from "../../src/services/taskIdentity";
+import type { DenoTask } from "../../src/services/denoJsonScanner";
 import type { NpmScriptTask } from "../../src/services/packageJsonScanner";
 import type { ShellScriptTask } from "../../src/services/shellScriptScanner";
 
@@ -20,6 +16,21 @@ function npmTask(name: string, cwd: string): NpmScriptTask {
     name,
     command: "echo",
     packageJsonUri,
+    cwd,
+  };
+}
+
+function denoTask(name: string, cwd: string): DenoTask {
+  const denoJsonUri = {
+    fsPath: `${cwd}/deno.json`,
+    toString: () => `file://${cwd}/deno.json`,
+  } as DenoTask["denoJsonUri"];
+
+  return {
+    kind: "deno",
+    name,
+    command: "deno run main.ts",
+    denoJsonUri,
     cwd,
   };
 }
@@ -44,6 +55,11 @@ describe("getTaskIdentity", () => {
     assert.equal(getTaskIdentity(task), "npm:file:///apps/web/package.json::build");
   });
 
+  it("uses denoJsonUri for Deno tasks", () => {
+    const task = denoTask("dev", "/apps/api");
+    assert.equal(getTaskIdentity(task), "deno:file:///apps/api/deno.json::dev");
+  });
+
   it("uses script URI for shell scripts", () => {
     const task = shellTask("/repo/scripts/build.sh");
     assert.equal(getTaskIdentity(task), "shell:file:///repo/scripts/build.sh");
@@ -56,7 +72,8 @@ describe("getLegacyTaskIdentities", () => {
     assert.deepEqual(getLegacyTaskIdentities(task), ["npm:/apps/api::test"]);
   });
 
-  it("returns no legacy keys for shell scripts", () => {
+  it("returns no legacy keys for Deno or shell scripts", () => {
+    assert.deepEqual(getLegacyTaskIdentities(denoTask("dev", "/apps/api")), []);
     assert.deepEqual(getLegacyTaskIdentities(shellTask("/x.sh")), []);
   });
 });
@@ -74,5 +91,11 @@ describe("getTaskTerminalName", () => {
     const name = getTaskTerminalName(npmTask("dev", "/apps/web"));
     assert.match(name, /^Taskingen: web \/ dev · /);
     assert.equal(getTaskShortLabel(npmTask("dev", "/apps/web")), "web / dev");
+  });
+
+  it("keeps a readable Deno short label", () => {
+    const name = getTaskTerminalName(denoTask("start", "/apps/edge"));
+    assert.match(name, /^Taskingen: edge \/ start · /);
+    assert.equal(getTaskShortLabel(denoTask("start", "/apps/edge")), "edge / start");
   });
 });

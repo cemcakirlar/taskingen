@@ -1,12 +1,17 @@
 import * as path from "node:path";
+import type { DenoTask } from "./denoJsonScanner";
 import type { NpmScriptTask } from "./packageJsonScanner";
 import type { ShellScriptTask } from "./shellScriptScanner";
 
-export type IdentityTask = NpmScriptTask | ShellScriptTask;
+export type IdentityTask = NpmScriptTask | DenoTask | ShellScriptTask;
 
 export function getTaskIdentity(task: IdentityTask): string {
   if (task.kind === "shell") {
     return `shell:${task.scriptUri.toString()}`;
+  }
+
+  if (task.kind === "deno") {
+    return `deno:${task.denoJsonUri.toString()}::${task.name}`;
   }
 
   return `npm:${task.packageJsonUri.toString()}::${task.name}`;
@@ -14,7 +19,7 @@ export function getTaskIdentity(task: IdentityTask): string {
 
 /** Older history keys used cwd instead of packageJsonUri for npm scripts. */
 export function getLegacyTaskIdentities(task: IdentityTask): readonly string[] {
-  if (task.kind === "shell") {
+  if (task.kind !== "npm") {
     return [];
   }
 

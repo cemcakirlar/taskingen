@@ -1,7 +1,7 @@
 {
   "name": "taskingen",
   "displayName": "Taskingen",
-  "description": "Run npm and shell scripts from the Explorer sidebar.",
+  "description": "Run npm, Deno, and shell scripts from the Explorer sidebar.",
   "version": "0.1.2",
   "publisher": "cemcakirlar",
   "icon": "media/icon.png",
@@ -17,6 +17,7 @@
   "keywords": [
     "scripts",
     "npm",
+    "deno",
     "shell",
     "tasks",
     "terminal",
@@ -66,7 +67,7 @@
     "viewsWelcome": [
       {
         "view": "taskingen.scripts",
-        "contents": "Open a folder to discover npm and shell scripts.\n[Open Folder](command:vscode.openFolder)",
+        "contents": "Open a folder to discover npm, Deno, and shell scripts.\n[Open Folder](command:vscode.openFolder)",
         "when": "workbenchState == empty"
       }
     ],
@@ -112,17 +113,17 @@
       "view/item/context": [
         {
           "command": "taskingen.open",
-          "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == shellScript || viewItem == npmScriptRunning || viewItem == shellScriptRunning)",
+          "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == denoScript || viewItem == shellScript || viewItem == npmScriptRunning || viewItem == denoScriptRunning || viewItem == shellScriptRunning)",
           "group": "inline@1"
         },
         {
           "command": "taskingen.run",
-          "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == shellScript)",
+          "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == denoScript || viewItem == shellScript)",
           "group": "inline@2"
         },
         {
           "command": "taskingen.stop",
-          "when": "view == taskingen.scripts && (viewItem == npmScriptRunning || viewItem == shellScriptRunning)",
+          "when": "view == taskingen.scripts && (viewItem == npmScriptRunning || viewItem == denoScriptRunning || viewItem == shellScriptRunning)",
           "group": "inline@2"
         },
         {
@@ -138,19 +139,19 @@
         "taskingen.npmScriptGrouping.separator": {
           "type": "string",
           "default": ":",
-          "description": "Literal separator used to nest npm script names under project folders. An empty value disables grouping."
+          "description": "Literal separator used to nest npm script and Deno task names under project folders. An empty value disables grouping."
         },
         "taskingen.npmScriptGrouping.maxDepth": {
           "type": "integer",
           "default": 1,
           "minimum": 0,
           "maximum": 10,
-          "description": "Maximum number of separator-based group levels under each project. Use 0 to disable grouping."
+          "description": "Maximum number of separator-based group levels under each npm or Deno project. Use 0 to disable grouping."
         },
         "taskingen.npmProjectGrouping.groupByScope": {
           "type": "boolean",
           "default": true,
-          "description": "Group scoped npm packages (for example @cemcakirlar/mst-tab-sync) under a shared @scope node."
+          "description": "Group scoped npm or Deno packages (for example @cemcakirlar/mst-tab-sync) under a shared @scope node."
         },
         "taskingen.scriptClickAction": {
           "type": "string",
@@ -161,7 +162,7 @@
           "default": "open",
           "description": "What happens when you activate a script name in the tree (see Script Click Mode). Inline Open and Run actions remain available either way.",
           "enumDescriptions": [
-            "Open the package.json script entry or shell script file in the editor.",
+            "Open the package.json script entry, deno.json task entry, or shell script file in the editor.",
             "Run the script in the terminal."
           ]
         },
@@ -183,7 +184,7 @@
           "default": 1,
           "minimum": 0,
           "maximum": 10,
-          "description": "How many tree levels are expanded by default. 0 collapses everything, 1 expands only the root npm/shell groups, and higher values expand deeper project and script groups."
+          "description": "How many tree levels are expanded by default. 0 collapses everything, 1 expands only the root npm/Deno/shell groups, and higher values expand deeper project and script groups."
         },
         "taskingen.taskHistory.enabled": {
           "type": "boolean",
@@ -203,7 +204,7 @@
             "type": "string"
           },
           "default": [],
-          "description": "Gitignore-style patterns for folders and paths to skip when discovering npm and shell scripts. Examples: legacy, legacy/**, packages/generated/**, /tools. Lines starting with # are ignored. A leading / limits the pattern to the workspace root."
+          "description": "Gitignore-style patterns for folders and paths to skip when discovering npm, Deno, and shell scripts. Examples: legacy, legacy/**, packages/generated/**, /tools. Lines starting with # are ignored. A leading / limits the pattern to the workspace root."
         }
       }
     }
