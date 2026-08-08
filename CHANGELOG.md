@@ -2,6 +2,28 @@
 
 All notable changes to Taskingen are documented in this file.
 
+## [0.1.4] - 2026-08-08
+
+### Added
+
+- `docs/publishing.md` — generic notes for packaging a VSIX and publishing to the Visual Studio Marketplace and Open VSX
+
+### Changed
+
+- README: Open Script Source mentions `deno.jsonc`; `groupByScope` documents npm or Deno packages
+
+## [0.1.3] - 2026-08-08
+
+### Added
+
+- Deno tasks support: discover and run `tasks` from `deno.json` / `deno.jsonc` (string or `{ command, description }`) via `deno task <name>`
+- Unit tests for Deno JSON scanning and related task identity / script-key helpers
+
+### Changed
+
+- README and Marketplace description updated for npm + Deno + shell discovery
+- Tree view, runner, history, and source-open flows extended to treat Deno tasks like other script kinds
+
 ## [0.1.2] - 2026-07-20
 
 ### Added

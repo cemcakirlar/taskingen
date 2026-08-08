@@ -2,7 +2,7 @@
   "name": "taskingen",
   "displayName": "Taskingen",
   "description": "Run npm, Deno, and shell scripts from the Explorer sidebar.",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "publisher": "cemcakirlar",
   "icon": "media/icon.png",
   "license": "MIT",

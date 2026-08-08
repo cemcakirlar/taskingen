@@ -22,51 +22,6 @@ Taskingen discovers `package.json` scripts, `deno.json` / `deno.jsonc` tasks, an
 
 Requires VS Code / Cursor `^1.125.0`.
 
-## Publish (manual VSIX upload)
-
-Build the package first:
-
-```bash
-npm run package   # → taskingen-<version>.vsix
-```
-
-Publisher id in `package.json` is `cemcakirlar`. Use the same id on both registries.
-
-### Visual Studio Marketplace (VS Code)
-
-1. Open the [Marketplace publisher management](https://marketplace.visualstudio.com/manage) page and sign in with your Microsoft account.
-2. Create a publisher if needed (**Create publisher**). The **ID** must match `publisher` in `package.json` (`cemcakirlar`).
-3. Select that publisher → **New extension** / upload → choose `taskingen-<version>.vsix`.
-4. Confirm the listing details, then wait for Marketplace validation to finish.
-
-Later versions: upload a new VSIX on the same extension page (version in the VSIX must be higher than the published one).
-
-Docs: [Publishing Extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension).
-
-### Open VSX (Cursor and other VS Code-compatible editors)
-
-Open VSX expects an existing `.vsix` uploaded with the `ovsx` CLI (there is no separate “drag file into the store” flow beyond this).
-
-One-time setup:
-
-1. Register an [Eclipse account](https://accounts.eclipse.org/user/register) (set the same GitHub username you use on Open VSX).
-2. Sign in to [open-vsx.org](https://open-vsx.org) with GitHub → [Profile](https://open-vsx.org/user-settings/profile) → **Log in with Eclipse** → sign the **Publisher Agreement**.
-3. Create an [access token](https://open-vsx.org/user-settings/tokens) (**Generate New Token**; copy it once).
-4. Create the namespace once (must match `publisher`):
-
-```bash
-npx ovsx create-namespace cemcakirlar -p <token>
-```
-
-Upload the VSIX:
-
-```bash
-npx ovsx publish taskingen-<version>.vsix -p <token>
-# or: npm run publish:ovsx -- taskingen-<version>.vsix -p <token>
-```
-
-Docs: [Publishing Extensions (Open VSX)](https://github.com/eclipse/openvsx/wiki/Publishing-Extensions).
-
 ## Usage
 
 1. Open a folder or multi-root workspace.
@@ -81,13 +36,13 @@ You can drag the view to the primary/secondary sidebar or panel. Use **Reset Loc
 
 ### Commands
 
-| Command                         | Description                                                           |
-| ------------------------------- | --------------------------------------------------------------------- |
-| `Taskingen: Refresh Scripts`    | Rescan the workspace                                                  |
-| `Taskingen: Open Script Source` | Open `package.json` / `deno.json` (key highlighted) or the shell file |
-| `Taskingen: Run Script`         | Run in a dedicated terminal                                           |
-| `Taskingen: Stop Script`        | Soft-stop (Ctrl+C) and clear running state                            |
-| `Taskingen: Clear Task History` | Clear stored recent runs for this workspace                           |
+| Command                         | Description                                                                          |
+| ------------------------------- | ------------------------------------------------------------------------------------ |
+| `Taskingen: Refresh Scripts`    | Rescan the workspace                                                                 |
+| `Taskingen: Open Script Source` | Open `package.json` / `deno.json` / `deno.jsonc` (key highlighted) or the shell file |
+| `Taskingen: Run Script`         | Run in a dedicated terminal                                                          |
+| `Taskingen: Stop Script`        | Soft-stop (Ctrl+C) and clear running state                                           |
+| `Taskingen: Clear Task History` | Clear stored recent runs for this workspace                                          |
 
 ## Settings
 
@@ -95,7 +50,7 @@ You can drag the view to the primary/secondary sidebar or panel. Use **Reset Loc
 | ------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `taskingen.npmScriptGrouping.separator`     | `:`           | Nest npm script and Deno task names on this separator; empty disables grouping                                                             |
 | `taskingen.npmScriptGrouping.maxDepth`      | `1`           | Max group levels under each project (`0` = flat)                                                                                           |
-| `taskingen.npmProjectGrouping.groupByScope` | `true`        | Group `@scope/name` packages under `@scope`                                                                                                |
+| `taskingen.npmProjectGrouping.groupByScope` | `true`        | Group `@scope/name` npm or Deno packages under `@scope`                                                                                    |
 | `taskingen.scriptClickAction`               | `open`        | On activate: `open` source or `execute` the script                                                                                         |
 | `taskingen.scriptClickMode`                 | `doubleClick` | Activate on single or double click (also respects `workbench.list.openMode`)                                                               |
 | `taskingen.tree.defaultExpandedDepth`       | `1`           | How many tree levels start expanded                                                                                                        |
