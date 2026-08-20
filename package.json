@@ -32,6 +32,7 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "scripts": {
+    "install:deps": "npm install",
     "compile": "tsc -p ./",
     "compile:test": "tsc -p tsconfig.test.json",
     "watch": "tsc -watch -p ./",
