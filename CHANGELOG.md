@@ -2,6 +2,21 @@
 
 All notable changes to Taskingen are documented in this file.
 
+## [Unreleased]
+
+## [0.1.5] - 2026-08-22
+
+### Added
+
+- `taskingen.npmProjectGrouping.folderMaxDepth` — Explorer-style folder nesting for npm projects, Deno projects, and shell scripts (default `1`; `0` keeps a flat list). Discovery depth is unchanged.
+- Folder nesting resolves paths against workspace roots first (avoids absolute disk paths when `asRelativePath` fails, e.g. packaged VSIX installs).
+- Folder nesting keeps `groupByScope` intact: root-level packages are not wrapped in a same-named folder that isolates each `@scope` package.
+- npm/Deno project rows show a path hint beside the tree label: the on-disk folder basename when it differs from the label, otherwise the workspace-relative path; workspace-root projects show no hint (no `./`).
+
+### Changed
+
+- `folderMaxDepth` counts nearest folders upward from each project/script (not from the workspace root), which keeps large workspaces like a top-level `Code/` folder usable.
+
 ## [0.1.4] - 2026-08-08
 
 ### Added

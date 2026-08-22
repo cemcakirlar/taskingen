@@ -6,7 +6,14 @@ import {
   readTaskHistorySettings,
 } from "../services/settings";
 import { scanDenoJsonProjects, type DenoProject } from "../services/denoJsonScanner";
-import { buildDenoProjectTree, buildNpmProjectTree, type DenoProjectTreeNode, type NpmProjectTreeNode } from "../services/npmProjectTree";
+import {
+  buildDenoProjectTree,
+  buildNpmProjectTree,
+  buildShellScriptTree,
+  type DenoProjectTreeNode,
+  type NpmProjectTreeNode,
+  type ShellTreeNode,
+} from "../services/npmProjectTree";
 import { buildScriptTree, type ScriptTreeNode } from "../services/npmScriptTree";
 import { scanPackageJsonProjects, type NpmProject } from "../services/packageJsonScanner";
 import type { RunningTaskRegistry } from "../services/runningTaskRegistry";
@@ -14,11 +21,13 @@ import type { TaskHistoryStore } from "../services/taskHistory";
 import { getTaskShortLabel } from "../services/taskIdentity";
 import { scanShellScripts, type ShellScriptTask } from "../services/shellScriptScanner";
 import type { RunnableTask } from "../services/runner";
+import { workspaceRelativePath } from "../services/workspacePath";
 import {
   DenoProjectItem,
   DenoScopeItem,
   NpmProjectItem,
   NpmScopeItem,
+  PathFolderItem,
   ScriptGroupItem,
   TaskGroupItem,
   TaskItem,
@@ -61,17 +70,51 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskTreeItem>, 
 
       if (element.groupKind === "npm") {
         const settings = readNpmProjectGroupingSettings();
-        const nodes = buildNpmProjectTree(this.npmProjects, settings.groupByScope);
+        const nodes = buildNpmProjectTree(
+          this.npmProjects,
+          (project) => workspaceRelativePath(project.cwd),
+          settings.folderMaxDepth,
+          settings.groupByScope,
+        );
         return mapNpmProjectTreeNodes(nodes, element.depth + 1, defaultExpandedDepth);
       }
 
       if (element.groupKind === "deno") {
         const settings = readNpmProjectGroupingSettings();
-        const nodes = buildDenoProjectTree(this.denoProjects, settings.groupByScope);
+        const nodes = buildDenoProjectTree(
+          this.denoProjects,
+          (project) => workspaceRelativePath(project.cwd),
+          settings.folderMaxDepth,
+          settings.groupByScope,
+        );
         return mapDenoProjectTreeNodes(nodes, element.depth + 1, defaultExpandedDepth);
       }
 
-      return this.shellScripts.map((task) => new TaskItem(task, task.name, this.runningRegistry.isRunning(task)));
+      const settings = readNpmProjectGroupingSettings();
+      const nodes = buildShellScriptTree(this.shellScripts, (script) => workspaceRelativePath(script.cwd), settings.folderMaxDepth);
+      return mapShellTreeNodes(nodes, element.depth + 1, defaultExpandedDepth, this.runningRegistry);
+    }
+
+    if (element instanceof PathFolderItem) {
+      if (element.folderKind === "npm") {
+        return mapNpmProjectTreeNodes(
+          element.children as readonly NpmProjectTreeNode[],
+          element.depth + 1,
+          defaultExpandedDepth,
+          element.pathKey,
+        );
+      }
+
+      if (element.folderKind === "deno") {
+        return mapDenoProjectTreeNodes(
+          element.children as readonly DenoProjectTreeNode[],
+          element.depth + 1,
+          defaultExpandedDepth,
+          element.pathKey,
+        );
+      }
+
+      return mapShellTreeNodes(element.children as readonly ShellTreeNode[], element.depth + 1, defaultExpandedDepth, this.runningRegistry);
     }
 
     if (element instanceof NpmScopeItem) {
@@ -194,23 +237,56 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskTreeItem>, 
   }
 }
 
-function mapNpmProjectTreeNodes(nodes: readonly NpmProjectTreeNode[], depth: number, defaultExpandedDepth: number): TaskTreeItem[] {
+function mapNpmProjectTreeNodes(
+  nodes: readonly NpmProjectTreeNode[],
+  depth: number,
+  defaultExpandedDepth: number,
+  identityPath: string = "",
+): TaskTreeItem[] {
   return nodes.map((node) => {
+    if (node.kind === "folder") {
+      return new PathFolderItem("npm", node.label, node.pathKey, node.children, depth, defaultExpandedDepth);
+    }
+
     if (node.kind === "scope") {
-      return new NpmScopeItem(node.scope, node.projects, depth, defaultExpandedDepth);
+      return new NpmScopeItem(node.scope, node.projects, depth, defaultExpandedDepth, identityPath);
     }
 
     return new NpmProjectItem(node.project, node.displayName, depth, defaultExpandedDepth);
   });
 }
 
-function mapDenoProjectTreeNodes(nodes: readonly DenoProjectTreeNode[], depth: number, defaultExpandedDepth: number): TaskTreeItem[] {
+function mapDenoProjectTreeNodes(
+  nodes: readonly DenoProjectTreeNode[],
+  depth: number,
+  defaultExpandedDepth: number,
+  identityPath: string = "",
+): TaskTreeItem[] {
   return nodes.map((node) => {
+    if (node.kind === "folder") {
+      return new PathFolderItem("deno", node.label, node.pathKey, node.children, depth, defaultExpandedDepth);
+    }
+
     if (node.kind === "scope") {
-      return new DenoScopeItem(node.scope, node.projects, depth, defaultExpandedDepth);
+      return new DenoScopeItem(node.scope, node.projects, depth, defaultExpandedDepth, identityPath);
     }
 
     return new DenoProjectItem(node.project, node.displayName, depth, defaultExpandedDepth);
+  });
+}
+
+function mapShellTreeNodes(
+  nodes: readonly ShellTreeNode[],
+  depth: number,
+  defaultExpandedDepth: number,
+  runningRegistry: RunningTaskRegistry,
+): TaskTreeItem[] {
+  return nodes.map((node) => {
+    if (node.kind === "folder") {
+      return new PathFolderItem("shell", node.label, node.pathKey, node.children, depth, defaultExpandedDepth);
+    }
+
+    return new TaskItem(node.task, node.task.name, runningRegistry.isRunning(node.task));
   });
 }
 

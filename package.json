@@ -2,7 +2,7 @@
   "name": "taskingen",
   "displayName": "Taskingen",
   "description": "Run npm, Deno, and shell scripts from the Explorer sidebar.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "publisher": "cemcakirlar",
   "icon": "media/icon.png",
   "license": "MIT",
@@ -153,6 +153,13 @@
           "type": "boolean",
           "default": true,
           "description": "Group scoped npm or Deno packages (for example @cemcakirlar/mst-tab-sync) under a shared @scope node."
+        },
+        "taskingen.npmProjectGrouping.folderMaxDepth": {
+          "type": "integer",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 10,
+          "description": "How many nearest workspace-relative folder levels to show under npm Scripts, Deno Tasks, and Shell Scripts (counting up from each item). Use 0 for a flat list. Does not limit how deeply package.json, Deno, or shell files are discovered."
         },
         "taskingen.scriptClickAction": {
           "type": "string",

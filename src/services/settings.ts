@@ -9,6 +9,7 @@ export interface NpmScriptGroupingSettings {
 
 export interface NpmProjectGroupingSettings {
   readonly groupByScope: boolean;
+  readonly folderMaxDepth: number;
 }
 
 export type ScriptClickAction = "open" | "execute";
@@ -42,9 +43,11 @@ export function readNpmProjectGroupingSettings(
   configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("taskingen"),
 ): NpmProjectGroupingSettings {
   const groupByScopeValue = configuration.get("npmProjectGrouping.groupByScope");
+  const folderMaxDepthValue = configuration.get("npmProjectGrouping.folderMaxDepth");
 
   return {
     groupByScope: typeof groupByScopeValue === "boolean" ? groupByScopeValue : true,
+    folderMaxDepth: normalizeBoundedInteger(folderMaxDepthValue, 1),
   };
 }
 
@@ -85,6 +88,7 @@ export function affectsTaskingenTree(event: vscode.ConfigurationChangeEvent): bo
     event.affectsConfiguration("taskingen.npmScriptGrouping.separator") ||
     event.affectsConfiguration("taskingen.npmScriptGrouping.maxDepth") ||
     event.affectsConfiguration("taskingen.npmProjectGrouping.groupByScope") ||
+    event.affectsConfiguration("taskingen.npmProjectGrouping.folderMaxDepth") ||
     event.affectsConfiguration("taskingen.tree.defaultExpandedDepth") ||
     event.affectsConfiguration("taskingen.taskHistory.enabled") ||
     event.affectsConfiguration("taskingen.taskHistory.maxItems") ||

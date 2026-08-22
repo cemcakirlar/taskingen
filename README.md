@@ -46,17 +46,18 @@ You can drag the view to the primary/secondary sidebar or panel. Use **Reset Loc
 
 ## Settings
 
-| Setting                                     | Default       | Description                                                                                                                                |
-| ------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `taskingen.npmScriptGrouping.separator`     | `:`           | Nest npm script and Deno task names on this separator; empty disables grouping                                                             |
-| `taskingen.npmScriptGrouping.maxDepth`      | `1`           | Max group levels under each project (`0` = flat)                                                                                           |
-| `taskingen.npmProjectGrouping.groupByScope` | `true`        | Group `@scope/name` npm or Deno packages under `@scope`                                                                                    |
-| `taskingen.scriptClickAction`               | `open`        | On activate: `open` source or `execute` the script                                                                                         |
-| `taskingen.scriptClickMode`                 | `doubleClick` | Activate on single or double click (also respects `workbench.list.openMode`)                                                               |
-| `taskingen.tree.defaultExpandedDepth`       | `1`           | How many tree levels start expanded                                                                                                        |
-| `taskingen.taskHistory.enabled`             | `true`        | Show the Task History group                                                                                                                |
-| `taskingen.taskHistory.maxItems`            | `5`           | How many recent scripts to show                                                                                                            |
-| `taskingen.discovery.exclude`               | `[]`          | Exclude folders or paths from npm/Deno/shell discovery; supports entries like `legacy`, `legacy/**`, `packages/generated/**`, and `/tools` |
+| Setting                                       | Default       | Description                                                                                                                                |
+| --------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `taskingen.npmScriptGrouping.separator`       | `:`           | Nest npm script and Deno task names on this separator; empty disables grouping                                                             |
+| `taskingen.npmScriptGrouping.maxDepth`        | `1`           | Max group levels under each project (`0` = flat)                                                                                           |
+| `taskingen.npmProjectGrouping.groupByScope`   | `true`        | Group `@scope/name` npm or Deno packages under `@scope`                                                                                    |
+| `taskingen.npmProjectGrouping.folderMaxDepth` | `1`           | Nearest folder levels under npm/Deno/shell, counting up from each item (`0` = flat). Does not limit discovery depth                        |
+| `taskingen.scriptClickAction`                 | `open`        | On activate: `open` source or `execute` the script                                                                                         |
+| `taskingen.scriptClickMode`                   | `doubleClick` | Activate on single or double click (also respects `workbench.list.openMode`)                                                               |
+| `taskingen.tree.defaultExpandedDepth`         | `1`           | How many tree levels start expanded                                                                                                        |
+| `taskingen.taskHistory.enabled`               | `true`        | Show the Task History group                                                                                                                |
+| `taskingen.taskHistory.maxItems`              | `5`           | How many recent scripts to show                                                                                                            |
+| `taskingen.discovery.exclude`                 | `[]`          | Exclude folders or paths from npm/Deno/shell discovery; supports entries like `legacy`, `legacy/**`, `packages/generated/**`, and `/tools` |
 
 ## Development
 
