@@ -37,16 +37,16 @@ You can drag the view to the primary/secondary sidebar or panel. Use **Reset Loc
 
 ### Commands
 
-| Command                         | Description                                                                          |
-| ------------------------------- | ------------------------------------------------------------------------------------ |
-| `Taskingen: Refresh Scripts`    | Rescan the workspace                                                                 |
-| `Taskingen: Open Script Source` | Open `package.json` / `deno.json` / `deno.jsonc` (key highlighted) or the shell file |
-| `Taskingen: Run Script`         | Run in a dedicated terminal                                                          |
-| `Taskingen: Stop Script`            | Soft-stop (Ctrl+C) and clear running state                                           |
-| `Taskingen: Add to Favorites`       | Pin a leaf script under Favorites                                                    |
-| `Taskingen: Remove from Favorites`  | Unpin a leaf script                                                                  |
-| `Taskingen: Clear Favorites`        | Clear stored favorites for this workspace                                            |
-| `Taskingen: Clear Task History`     | Clear stored recent runs for this workspace                                          |
+| Command                            | Description                                                                          |
+| ---------------------------------- | ------------------------------------------------------------------------------------ |
+| `Taskingen: Refresh Scripts`       | Rescan the workspace                                                                 |
+| `Taskingen: Open Script Source`    | Open `package.json` / `deno.json` / `deno.jsonc` (key highlighted) or the shell file |
+| `Taskingen: Run Script`            | Run in a dedicated terminal                                                          |
+| `Taskingen: Stop Script`           | Soft-stop (Ctrl+C) and clear running state                                           |
+| `Taskingen: Add to Favorites`      | Pin a leaf script under Favorites                                                    |
+| `Taskingen: Remove from Favorites` | Unpin a leaf script                                                                  |
+| `Taskingen: Clear Favorites`       | Clear stored favorites for this workspace                                            |
+| `Taskingen: Clear Task History`    | Clear stored recent runs for this workspace                                          |
 
 ## Settings
 
@@ -60,7 +60,7 @@ You can drag the view to the primary/secondary sidebar or panel. Use **Reset Loc
 | `taskingen.scriptClickMode`                   | `doubleClick` | Activate on single or double click (also respects `workbench.list.openMode`)                                                               |
 | `taskingen.tree.defaultExpandedDepth`         | `1`           | How many tree levels start expanded                                                                                                        |
 | `taskingen.favorites.enabled`                 | `true`        | Show the Favorites group                                                                                                                   |
-| `taskingen.favorites.maxItems`                | `5`           | How many pinned scripts to show                                                                                                            |
+| `taskingen.favorites.maxItems`                | `5`           | How many pinned scripts to show (newest first; older pins stay stored)                                                                     |
 | `taskingen.taskHistory.enabled`               | `true`        | Show the Task History group                                                                                                                |
 | `taskingen.taskHistory.maxItems`              | `5`           | How many recent scripts to show                                                                                                            |
 | `taskingen.discovery.exclude`                 | `[]`          | Exclude folders or paths from npm/Deno/shell discovery; supports entries like `legacy`, `legacy/**`, `packages/generated/**`, and `/tools` |

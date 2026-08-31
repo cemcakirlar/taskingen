@@ -4,6 +4,17 @@ All notable changes to Taskingen are documented in this file.
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-08-31
+
+### Added
+
+- Favorites: pin leaf scripts (inline + context menu) into a Favorites group above Task History; clear is workspace-scoped
+- Settings: `taskingen.favorites.enabled` (default `true`) and `taskingen.favorites.maxItems` (default `5`, range 1–50)
+
+### Changed
+
+- New favorites pins appear first; older pins stay stored and resurface when a newer pin is removed or `maxItems` is raised
+
 ## [0.1.5] - 2026-08-22
 
 ### Added

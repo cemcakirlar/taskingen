@@ -2,7 +2,7 @@
   "name": "taskingen",
   "displayName": "Taskingen",
   "description": "Run npm, Deno, and shell scripts from the Explorer sidebar.",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "publisher": "cemcakirlar",
   "icon": "media/icon.png",
   "license": "MIT",
@@ -244,7 +244,7 @@
           "default": 5,
           "minimum": 1,
           "maximum": 50,
-          "description": "How many pinned scripts to show under Favorites."
+          "description": "How many pinned scripts to show under Favorites. Newest pins appear first; older pins stay stored and become visible again when a newer pin is removed or this limit is raised."
         },
         "taskingen.taskHistory.enabled": {
           "type": "boolean",

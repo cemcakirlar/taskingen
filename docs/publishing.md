@@ -65,6 +65,7 @@ Official docs: [Publishing Extensions (Open VSX)](https://github.com/eclipse/ope
 
 1. Bump `version` in `package.json` (and changelog if you keep one).
 2. Build the VSIX and spot-check install locally (**Extensions: Install from VSIX…**).
-3. Upload / publish to Marketplace (VS Code users).
-4. Publish the same VSIX to Open VSX (Cursor and other clients).
-5. Confirm both listings show the new version.
+3. After the spot-check passes: commit the release (`package.json`, `CHANGELOG.md`, and any release notes/docs) and tag `v<version>` (example: `v0.1.6`). Do not commit the `.vsix`.
+4. Upload / publish to Marketplace (VS Code users).
+5. Publish the same VSIX to Open VSX (Cursor and other clients).
+6. Confirm both listings show the new version.

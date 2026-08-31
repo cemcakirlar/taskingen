@@ -106,19 +106,13 @@ describe("readFavoritesSettings", () => {
   });
 
   it("clamps maxItems to 1..50", () => {
-    assert.equal(
-      readFavoritesSettings(configurationStub((key) => (key === "favorites.maxItems" ? 0 : undefined))).maxItems,
-      1,
-    );
-    assert.equal(
-      readFavoritesSettings(configurationStub((key) => (key === "favorites.maxItems" ? 99 : undefined))).maxItems,
-      50,
-    );
+    assert.equal(readFavoritesSettings(configurationStub((key) => (key === "favorites.maxItems" ? 0 : undefined))).maxItems, 1);
+    assert.equal(readFavoritesSettings(configurationStub((key) => (key === "favorites.maxItems" ? 99 : undefined))).maxItems, 50);
   });
 });
 
 describe("FavoritesStore", () => {
-  it("appends new pins at the end and ignores duplicates", () => {
+  it("prepends new pins at the top and ignores duplicates", () => {
     setWorkspaceFolders(["/repo"]);
     const store = new FavoritesStore(createMemento());
     const first = npmTask("build", "/repo/web");
@@ -131,7 +125,7 @@ describe("FavoritesStore", () => {
     const resolved = store.resolveFavoriteTasks([npmProject("/repo/web", [first, second])], [], []);
     assert.deepEqual(
       resolved.map((task) => getTaskIdentity(task)),
-      [getTaskIdentity(first), getTaskIdentity(second)],
+      [getTaskIdentity(second), getTaskIdentity(first)],
     );
   });
 
@@ -159,12 +153,12 @@ describe("FavoritesStore", () => {
     store.add(first);
     store.add(second);
 
-    store.remove(first);
+    store.remove(second);
 
-    assert.equal(store.isFavorite(first), false);
+    assert.equal(store.isFavorite(second), false);
     assert.deepEqual(
       store.resolveFavoriteTasks([npmProject("/repo/web", [first, second])], [], []).map((task) => getTaskIdentity(task)),
-      [getTaskIdentity(second)],
+      [getTaskIdentity(first)],
     );
   });
 
@@ -184,7 +178,7 @@ describe("FavoritesStore", () => {
     assert.equal(store.isFavorite(npmTask("gone", "/repo/web")), true);
   });
 
-  it("truncates resolved favorites to maxItems without dropping stored pins", () => {
+  it("shows newest pins first and reveals older pins when maxItems grows or a newer pin is removed", () => {
     setWorkspaceFolders(["/repo"]);
     setFavoritesConfig({ enabled: true, maxItems: 1 });
     const first = npmTask("a", "/repo/web");
@@ -195,13 +189,20 @@ describe("FavoritesStore", () => {
 
     assert.deepEqual(
       store.resolveFavoriteTasks([npmProject("/repo/web", [first, second])], [], []).map((task) => getTaskIdentity(task)),
+      [getTaskIdentity(second)],
+    );
+
+    store.remove(second);
+    assert.deepEqual(
+      store.resolveFavoriteTasks([npmProject("/repo/web", [first, second])], [], []).map((task) => getTaskIdentity(task)),
       [getTaskIdentity(first)],
     );
 
+    store.add(second);
     setFavoritesConfig({ enabled: true, maxItems: 5 });
     assert.deepEqual(
       store.resolveFavoriteTasks([npmProject("/repo/web", [first, second])], [], []).map((task) => getTaskIdentity(task)),
-      [getTaskIdentity(first), getTaskIdentity(second)],
+      [getTaskIdentity(second), getTaskIdentity(first)],
     );
   });
 

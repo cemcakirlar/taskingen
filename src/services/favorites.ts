@@ -34,7 +34,7 @@ export class FavoritesStore {
       return;
     }
 
-    const next: FavoritesEntry[] = [...current, { identity }];
+    const next: FavoritesEntry[] = [{ identity }, ...current];
     this.entries = next;
     void this.workspaceState.update(FAVORITES_STATE_KEY, next);
   }
