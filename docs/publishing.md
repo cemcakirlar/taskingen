@@ -1,6 +1,6 @@
 # Publishing a VS Code extension (VSIX)
 
-How to ship a packaged `.vsix` to the Visual Studio Marketplace and Open VSX. Steps are generic; replace placeholders with your own values.
+How to ship a packaged `.vsix` to the **VS Code Marketplace** and **Open VSX**. Steps are generic; replace placeholders with your own values.
 
 ## Build the VSIX
 
@@ -17,18 +17,16 @@ Use the **same** `publisher` id on both registries.
 
 ---
 
-## Visual Studio Marketplace (VS Code)
+## VS Code Marketplace
 
-Manual upload via the web UI.
+Manual upload via the web UI (no CLI publish in the Taskingen release flow).
 
-1. Open [Marketplace publisher management](https://marketplace.visualstudio.com/manage) and sign in with your Microsoft account.
+1. Open [VS Code Marketplace publisher management](https://marketplace.visualstudio.com/manage) and sign in with your Microsoft account.
 2. Create a publisher if needed (**Create publisher**). The **ID** must match the `publisher` field in `package.json` (immutable after creation).
 3. Select the publisher → add / upload a new extension → choose the `.vsix` file.
-4. Wait for Marketplace validation to finish.
+4. Wait for VS Code Marketplace validation to finish.
 
 **Updates:** upload a new `.vsix` on the same extension page. The version inside the package must be higher than the one already published.
-
-Optional CLI path (PAT / Entra-based auth required): `npx @vscode/vsce publish`.
 
 Official docs: [Publishing Extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension).
 
@@ -66,6 +64,6 @@ Official docs: [Publishing Extensions (Open VSX)](https://github.com/eclipse/ope
 1. Bump `version` in `package.json` (and changelog if you keep one).
 2. Build the VSIX and spot-check install locally (**Extensions: Install from VSIX…**).
 3. After the spot-check passes: commit the release (`package.json`, `CHANGELOG.md`, and any release notes/docs) and tag `v<version>` (example: `v0.1.6`). Do not commit the `.vsix`.
-4. Upload / publish to Marketplace (VS Code users).
-5. Publish the same VSIX to Open VSX (Cursor and other clients).
+4. Upload to **VS Code Marketplace** via the web UI (manual; not `vsce publish`).
+5. Publish the same VSIX to Open VSX (CLI).
 6. Confirm both listings show the new version.
