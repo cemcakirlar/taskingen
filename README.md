@@ -13,6 +13,7 @@ Taskingen discovers `package.json` scripts, `deno.json` / `deno.jsonc` tasks, an
 - **Run / stop / open** — Inline actions on each script; running scripts show a stop control
 - **Click to activate** — Configure whether clicking a script opens the source or runs it (single or double click)
 - **Task History** — Recently run scripts from the current workspace at the top of the tree
+- **Favorites** — Pin leaf scripts to a Favorites group above History; clear is workspace-scoped
 - **Live refresh** — Watches `package.json`, `deno.json` / `deno.jsonc`, and shell script changes (debounced); also refreshes on workspace folder and relevant setting changes
 
 ## Install (local)
@@ -29,7 +30,7 @@ Requires VS Code / Cursor `^1.125.0`.
 3. Expand **npm Scripts**, **Deno Tasks**, or **Shell Scripts**, then:
    - Use the inline **Open** / **Run** / **Stop** icons, or
    - Activate a script name (see [Settings](#settings) for click behavior).
-4. **Task History** lists recently run scripts; clear it from the history group’s inline action.
+4. **Favorites** pins scripts you star; **Task History** lists recently run scripts. Clear each from that group’s inline action.
 5. Use the view’s **Refresh** button (or **Taskingen: Refresh Scripts**) after large changes if needed.
 
 You can drag the view to the primary/secondary sidebar or panel. Use **Reset Location** on the view title menu to return it to Explorer.
@@ -41,8 +42,11 @@ You can drag the view to the primary/secondary sidebar or panel. Use **Reset Loc
 | `Taskingen: Refresh Scripts`    | Rescan the workspace                                                                 |
 | `Taskingen: Open Script Source` | Open `package.json` / `deno.json` / `deno.jsonc` (key highlighted) or the shell file |
 | `Taskingen: Run Script`         | Run in a dedicated terminal                                                          |
-| `Taskingen: Stop Script`        | Soft-stop (Ctrl+C) and clear running state                                           |
-| `Taskingen: Clear Task History` | Clear stored recent runs for this workspace                                          |
+| `Taskingen: Stop Script`            | Soft-stop (Ctrl+C) and clear running state                                           |
+| `Taskingen: Add to Favorites`       | Pin a leaf script under Favorites                                                    |
+| `Taskingen: Remove from Favorites`  | Unpin a leaf script                                                                  |
+| `Taskingen: Clear Favorites`        | Clear stored favorites for this workspace                                            |
+| `Taskingen: Clear Task History`     | Clear stored recent runs for this workspace                                          |
 
 ## Settings
 
@@ -55,6 +59,8 @@ You can drag the view to the primary/secondary sidebar or panel. Use **Reset Loc
 | `taskingen.scriptClickAction`                 | `open`        | On activate: `open` source or `execute` the script                                                                                         |
 | `taskingen.scriptClickMode`                   | `doubleClick` | Activate on single or double click (also respects `workbench.list.openMode`)                                                               |
 | `taskingen.tree.defaultExpandedDepth`         | `1`           | How many tree levels start expanded                                                                                                        |
+| `taskingen.favorites.enabled`                 | `true`        | Show the Favorites group                                                                                                                   |
+| `taskingen.favorites.maxItems`                | `5`           | How many pinned scripts to show                                                                                                            |
 | `taskingen.taskHistory.enabled`               | `true`        | Show the Task History group                                                                                                                |
 | `taskingen.taskHistory.maxItems`              | `5`           | How many recent scripts to show                                                                                                            |
 | `taskingen.discovery.exclude`                 | `[]`          | Exclude folders or paths from npm/Deno/shell discovery; supports entries like `legacy`, `legacy/**`, `packages/generated/**`, and `/tools` |

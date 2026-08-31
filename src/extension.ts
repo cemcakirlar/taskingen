@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { affectsTaskingenTree } from "./services/settings";
+import { FavoritesStore } from "./services/favorites";
 import { RunningTaskRegistry } from "./services/runningTaskRegistry";
 import { createScriptActivationController, runConfiguredScriptAction } from "./services/scriptActivation";
 import { openTaskSource } from "./services/scriptSourceOpener";
@@ -16,7 +17,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const outputChannel = vscode.window.createOutputChannel("Taskingen");
   const runningRegistry = new RunningTaskRegistry();
   const taskHistory = new TaskHistoryStore(context.workspaceState);
-  const provider = new TaskTreeProvider(outputChannel, runningRegistry, taskHistory);
+  const favorites = new FavoritesStore(context.workspaceState);
+  const provider = new TaskTreeProvider(outputChannel, runningRegistry, taskHistory, favorites);
   const treeView = vscode.window.createTreeView(SCRIPT_VIEW_ID, {
     treeDataProvider: provider,
     showCollapseAll: true,
@@ -76,6 +78,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
   };
 
+  const refreshFavoritesUi = (): void => {
+    provider.refreshFavorites();
+    applyTreeMessage(createEmptyStateMessage(provider.getCounts()));
+  };
+
   const scriptActivation = createScriptActivationController((item) =>
     runConfiguredScriptAction(item, { open: openScript, run: runScript }),
   );
@@ -106,6 +113,32 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     if (!stopped) {
       void vscode.window.showInformationMessage(`${getTaskShortLabel(item.task)} is not running.`);
     }
+  });
+  const addFavoriteCommand = vscode.commands.registerCommand("taskingen.addFavorite", (item: unknown): void => {
+    if (!(item instanceof TaskItem)) {
+      return;
+    }
+
+    favorites.add(item.task);
+    refreshFavoritesUi();
+  });
+  const removeFavoriteCommand = vscode.commands.registerCommand("taskingen.removeFavorite", (item: unknown): void => {
+    if (!(item instanceof TaskItem)) {
+      return;
+    }
+
+    favorites.remove(item.task);
+    refreshFavoritesUi();
+  });
+  const clearFavoritesCommand = vscode.commands.registerCommand("taskingen.clearFavorites", async (): Promise<void> => {
+    const count = favorites.storedCount();
+    const choice = await vscode.window.showWarningMessage(`Clear ${count} favorites?`, { modal: true }, "Yes", "No");
+    if (choice !== "Yes") {
+      return;
+    }
+
+    await favorites.clear();
+    refreshFavoritesUi();
   });
   const clearHistoryCommand = vscode.commands.registerCommand("taskingen.clearHistory", async (): Promise<void> => {
     const choice = await vscode.window.showWarningMessage("Clear Task History?", { modal: true }, "Yes", "No");
@@ -148,6 +181,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     openCommand,
     runCommand,
     stopCommand,
+    addFavoriteCommand,
+    removeFavoriteCommand,
+    clearFavoritesCommand,
     clearHistoryCommand,
     refreshCommand,
     watcher,

@@ -14,7 +14,7 @@ import { getTaskIdentity } from "../services/taskIdentity";
 import { isTreeLevelExpanded } from "../services/treeExpansion";
 import { projectFolderDescription, workspaceRelativePath } from "../services/workspacePath";
 
-export type TaskGroupKind = "npm" | "deno" | "shell" | "history";
+export type TaskGroupKind = "npm" | "deno" | "shell" | "history" | "favorites";
 
 export type PathFolderKind = "npm" | "deno" | "shell";
 
@@ -142,20 +142,20 @@ export class ScriptGroupItem extends vscode.TreeItem {
   }
 }
 
-/** @deprecated Prefer ScriptGroupItem; kept as an alias for existing call sites. */
-export class NpmScriptGroupItem extends ScriptGroupItem {}
-
 export class TaskItem extends vscode.TreeItem {
   public constructor(
     public readonly task: RunnableTask,
     displayLabel: string = task.name,
     isRunning: boolean = false,
     treeIdPrefix?: string,
+    isFavorite: boolean = false,
   ) {
     super(displayLabel, vscode.TreeItemCollapsibleState.None);
 
     const baseContext = contextValueForTask(task);
-    this.contextValue = isRunning ? `${baseContext}Running` : baseContext;
+    const favoriteSuffix = isFavorite ? "Favorited" : "";
+    const runningSuffix = isRunning ? "Running" : "";
+    this.contextValue = `${baseContext}${favoriteSuffix}${runningSuffix}`;
     this.description = describeTaskItem(task, isRunning);
     this.tooltip = buildTaskTooltip(task, isRunning);
     this.iconPath = new vscode.ThemeIcon(isRunning ? "play-circle" : task.kind === "shell" ? "file-code" : "symbol-event");
@@ -192,11 +192,23 @@ function iconForGroup(groupKind: TaskGroupKind): string {
     return "terminal-bash";
   }
 
+  if (groupKind === "favorites") {
+    return "star-full";
+  }
+
   return "history";
 }
 
 function contextValueForGroup(groupKind: TaskGroupKind): string | undefined {
-  return groupKind === "history" ? "taskHistory" : undefined;
+  if (groupKind === "history") {
+    return "taskHistory";
+  }
+
+  if (groupKind === "favorites") {
+    return "taskFavorites";
+  }
+
+  return undefined;
 }
 
 function contextValueForTask(task: RunnableTask): string {

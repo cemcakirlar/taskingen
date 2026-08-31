@@ -21,6 +21,11 @@ export interface TaskHistorySettings {
   readonly maxItems: number;
 }
 
+export interface FavoritesSettings {
+  readonly enabled: boolean;
+  readonly maxItems: number;
+}
+
 export function readDiscoveryExcludePatterns(
   configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("taskingen"),
 ): string[] {
@@ -79,7 +84,19 @@ export function readTaskHistorySettings(
 
   return {
     enabled: typeof enabledValue === "boolean" ? enabledValue : true,
-    maxItems: normalizeHistoryMaxItems(maxItemsValue),
+    maxItems: normalizeVisibleMaxItems(maxItemsValue),
+  };
+}
+
+export function readFavoritesSettings(
+  configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("taskingen"),
+): FavoritesSettings {
+  const enabledValue = configuration.get("favorites.enabled");
+  const maxItemsValue = configuration.get("favorites.maxItems");
+
+  return {
+    enabled: typeof enabledValue === "boolean" ? enabledValue : true,
+    maxItems: normalizeVisibleMaxItems(maxItemsValue),
   };
 }
 
@@ -92,6 +109,8 @@ export function affectsTaskingenTree(event: vscode.ConfigurationChangeEvent): bo
     event.affectsConfiguration("taskingen.tree.defaultExpandedDepth") ||
     event.affectsConfiguration("taskingen.taskHistory.enabled") ||
     event.affectsConfiguration("taskingen.taskHistory.maxItems") ||
+    event.affectsConfiguration("taskingen.favorites.enabled") ||
+    event.affectsConfiguration("taskingen.favorites.maxItems") ||
     event.affectsConfiguration("taskingen.discovery.exclude")
   );
 }
@@ -104,7 +123,7 @@ function normalizeBoundedInteger(value: unknown, fallback: number): number {
   return Math.max(0, Math.min(10, Math.trunc(value)));
 }
 
-function normalizeHistoryMaxItems(value: unknown): number {
+function normalizeVisibleMaxItems(value: unknown): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return 5;
   }
