@@ -3,7 +3,8 @@ name: publish-vsix
 description: >-
   Package Taskingen as a .vsix and publish to VS Code Marketplace and Open VSX.
   Use when the user asks to create a VSIX, package the extension, publish to
-  VS Code Marketplace, publish to Open VSX, or ship a release.
+  VS Code Marketplace, or publish to Open VSX. For GitHub Releases / gh release
+  with a VSIX asset, use the github-release skill.
 ---
 
 # Publish VSIX (Taskingen)
@@ -28,9 +29,10 @@ Release progress:
 - [ ] 2. Build VSIX — `npm run package`
 - [ ] 3. Spot-check — Extensions: Install from VSIX…
 - [ ] 4. Commit release + tag `v<version>` (e.g. `v0.1.6`); do not commit the `.vsix`
-- [ ] 5. VS Code Marketplace — manual UI upload (agent does not run publish)
-- [ ] 6. Publish Open VSX — `npm run publish:ovsx` (only when user asks)
-- [ ] 7. Confirm both listings show the new version
+- [ ] 5. GitHub Release — follow github-release skill (only when user asks)
+- [ ] 6. VS Code Marketplace — manual UI upload (agent does not run publish)
+- [ ] 7. Publish Open VSX — `npm run publish:ovsx` (only when user asks)
+- [ ] 8. Confirm GitHub / Marketplace / Open VSX show the new version
 ```
 
 ## Agent rules
@@ -38,7 +40,7 @@ Release progress:
 1. Follow [docs/publishing.md](../../../docs/publishing.md) for VS Code Marketplace UI and Open VSX token/namespace steps.
 2. Never publish without an explicit user request for that registry.
 3. VS Code Marketplace is **manual only**: give the user the `.vsix` path and [publisher manage](https://marketplace.visualstudio.com/manage) URL. Do not run `npm run publish` / `vsce publish`.
-4. After spot-check, propose commit + tag `v<version>` before registry publish; only commit/tag when the user asks.
+4. After spot-check, propose commit + tag `v<version>` before registry publish; only commit/tag when the user asks. For attaching the VSIX on GitHub Releases, hand off to [github-release](../github-release/SKILL.md).
 5. Never commit secrets, PATs, or Open VSX tokens; do not commit `.vsix` unless asked.
 6. Prefer `npm run package` / `npm run publish:ovsx` over raw `vsce` / `ovsx` unless debugging.
 7. After packaging, report the exact `.vsix` path and version; ask commit/tag vs which registry next if unclear.

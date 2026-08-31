@@ -15,7 +15,8 @@
 
 ## Publish
 
-Ship a VSIX / Marketplace / Open VSX → read `.cursor/skills/publish-vsix` (identity + checklist), then follow `docs/publishing.md` (canonical steps).
+- **Marketplace / Open VSX** → `.cursor/skills/publish-vsix`, then `docs/publishing.md`.
+- **GitHub Release** (tag + VSIX asset) → `.cursor/skills/github-release`, then `docs/publishing.md` → GitHub Releases.
 
 ## Review
 
