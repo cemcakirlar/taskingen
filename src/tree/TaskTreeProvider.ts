@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import {
   readDefaultExpandedDepth,
   readFavoritesSettings,
+  readHideEmptyScriptRoots,
   readNpmProjectGroupingSettings,
   readNpmScriptGroupingSettings,
   readTaskHistorySettings,
@@ -180,6 +181,7 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskTreeItem>, 
     const historyCount = this.getHistoryTasks().length;
     const favoritesSettings = readFavoritesSettings();
     const historySettings = readTaskHistorySettings();
+    const hideEmptyScriptRoots = readHideEmptyScriptRoots();
     const roots: TaskTreeItem[] = [];
 
     if (favoritesSettings.enabled && favoritesCount > 0) {
@@ -190,11 +192,17 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskTreeItem>, 
       roots.push(new TaskGroupItem("history", "Task History", describeCount(historyCount), 0, defaultExpandedDepth));
     }
 
-    roots.push(
-      new TaskGroupItem("npm", "npm Scripts", describeCount(npmScriptCount), 0, defaultExpandedDepth),
-      new TaskGroupItem("deno", "Deno Tasks", describeCount(denoTaskCount), 0, defaultExpandedDepth),
-      new TaskGroupItem("shell", "Shell Scripts", describeCount(this.shellScripts.length), 0, defaultExpandedDepth),
-    );
+    if (!hideEmptyScriptRoots || npmScriptCount > 0) {
+      roots.push(new TaskGroupItem("npm", "npm Scripts", describeCount(npmScriptCount), 0, defaultExpandedDepth));
+    }
+
+    if (!hideEmptyScriptRoots || denoTaskCount > 0) {
+      roots.push(new TaskGroupItem("deno", "Deno Tasks", describeCount(denoTaskCount), 0, defaultExpandedDepth));
+    }
+
+    if (!hideEmptyScriptRoots || this.shellScripts.length > 0) {
+      roots.push(new TaskGroupItem("shell", "Shell Scripts", describeCount(this.shellScripts.length), 0, defaultExpandedDepth));
+    }
 
     return roots;
   }

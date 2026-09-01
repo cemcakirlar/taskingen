@@ -207,32 +207,60 @@
     "configuration": {
       "title": "Taskingen",
       "properties": {
-        "taskingen.npmScriptGrouping.separator": {
-          "type": "string",
-          "default": ":",
-          "description": "Literal separator used to nest npm script and Deno task names under project folders. An empty value disables grouping."
+        "taskingen.discovery.exclude": {
+          "type": "array",
+          "order": 10,
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Gitignore-style patterns for folders and paths to skip when discovering npm, Deno, and shell scripts. Examples: legacy, legacy/**, packages/generated/**, /tools. Lines starting with # are ignored. A leading / limits the pattern to the workspace root."
         },
-        "taskingen.npmScriptGrouping.maxDepth": {
+        "taskingen.tree.hideEmptyScriptRoots": {
+          "type": "boolean",
+          "order": 20,
+          "default": true,
+          "description": "Hide npm Scripts, Deno Tasks, and Shell Scripts root groups when no scripts of that type were discovered in the workspace."
+        },
+        "taskingen.tree.defaultExpandedDepth": {
           "type": "integer",
+          "order": 21,
           "default": 1,
           "minimum": 0,
           "maximum": 10,
-          "description": "Maximum number of separator-based group levels under each npm or Deno project. Use 0 to disable grouping."
+          "description": "How many tree levels are expanded by default. 0 collapses everything, 1 expands only the root npm/Deno/shell groups, and higher values expand deeper project and script groups."
         },
         "taskingen.npmProjectGrouping.groupByScope": {
           "type": "boolean",
+          "order": 30,
           "default": true,
           "description": "Group scoped npm or Deno packages (for example @cemcakirlar/mst-tab-sync) under a shared @scope node."
         },
         "taskingen.npmProjectGrouping.folderMaxDepth": {
           "type": "integer",
+          "order": 31,
           "default": 1,
           "minimum": 0,
           "maximum": 10,
           "description": "How many nearest workspace-relative folder levels to show under npm Scripts, Deno Tasks, and Shell Scripts (counting up from each item). Use 0 for a flat list. Does not limit how deeply package.json, Deno, or shell files are discovered."
         },
+        "taskingen.npmScriptGrouping.separator": {
+          "type": "string",
+          "order": 40,
+          "default": ":",
+          "description": "Literal separator used to nest npm script and Deno task names under project folders. An empty value disables grouping."
+        },
+        "taskingen.npmScriptGrouping.maxDepth": {
+          "type": "integer",
+          "order": 41,
+          "default": 1,
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Maximum number of separator-based group levels under each npm or Deno project. Use 0 to disable grouping."
+        },
         "taskingen.scriptClickAction": {
           "type": "string",
+          "order": 50,
           "enum": [
             "open",
             "execute"
@@ -246,6 +274,7 @@
         },
         "taskingen.scriptClickMode": {
           "type": "string",
+          "order": 51,
           "enum": [
             "singleClick",
             "doubleClick"
@@ -257,20 +286,15 @@
             "Activate the script on double click."
           ]
         },
-        "taskingen.tree.defaultExpandedDepth": {
-          "type": "integer",
-          "default": 1,
-          "minimum": 0,
-          "maximum": 10,
-          "description": "How many tree levels are expanded by default. 0 collapses everything, 1 expands only the root npm/Deno/shell groups, and higher values expand deeper project and script groups."
-        },
         "taskingen.favorites.enabled": {
           "type": "boolean",
+          "order": 60,
           "default": true,
           "description": "Show the Favorites group at the top of the Taskingen tree with pinned scripts from the current workspace."
         },
         "taskingen.favorites.maxItems": {
           "type": "integer",
+          "order": 61,
           "default": 5,
           "minimum": 1,
           "maximum": 50,
@@ -278,23 +302,17 @@
         },
         "taskingen.taskHistory.enabled": {
           "type": "boolean",
+          "order": 70,
           "default": true,
           "description": "Show the Task History group at the top of the Taskingen tree with recently run scripts from the current workspace folder."
         },
         "taskingen.taskHistory.maxItems": {
           "type": "integer",
+          "order": 71,
           "default": 5,
           "minimum": 1,
           "maximum": 50,
           "description": "How many recently run scripts to show under Task History."
-        },
-        "taskingen.discovery.exclude": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [],
-          "description": "Gitignore-style patterns for folders and paths to skip when discovering npm, Deno, and shell scripts. Examples: legacy, legacy/**, packages/generated/**, /tools. Lines starting with # are ignored. A leading / limits the pattern to the workspace root."
         }
       }
     }

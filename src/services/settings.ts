@@ -76,6 +76,13 @@ export function readDefaultExpandedDepth(
   return normalizeDefaultExpandedDepth(configuration.get("tree.defaultExpandedDepth"));
 }
 
+export function readHideEmptyScriptRoots(
+  configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("taskingen"),
+): boolean {
+  const value = configuration.get("tree.hideEmptyScriptRoots");
+  return typeof value === "boolean" ? value : true;
+}
+
 export function readTaskHistorySettings(
   configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("taskingen"),
 ): TaskHistorySettings {
@@ -107,6 +114,7 @@ export function affectsTaskingenTree(event: vscode.ConfigurationChangeEvent): bo
     event.affectsConfiguration("taskingen.npmProjectGrouping.groupByScope") ||
     event.affectsConfiguration("taskingen.npmProjectGrouping.folderMaxDepth") ||
     event.affectsConfiguration("taskingen.tree.defaultExpandedDepth") ||
+    event.affectsConfiguration("taskingen.tree.hideEmptyScriptRoots") ||
     event.affectsConfiguration("taskingen.taskHistory.enabled") ||
     event.affectsConfiguration("taskingen.taskHistory.maxItems") ||
     event.affectsConfiguration("taskingen.favorites.enabled") ||
