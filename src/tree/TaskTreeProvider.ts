@@ -248,14 +248,15 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskTreeItem>, 
   private readonly createTaskItem = (
     task: RunnableTask,
     displayLabel: string,
-    treeIdPrefix?: string,
+    options: { readonly treeIdPrefix?: string; readonly isHistoryItem?: boolean } = {},
   ): TaskItem => {
     return new TaskItem(
       task,
       displayLabel,
       this.runningRegistry.isRunning(task),
-      treeIdPrefix,
+      options.treeIdPrefix,
       this.favorites.isFavorite(task),
+      options.isHistoryItem === true,
     );
   };
 
@@ -268,15 +269,17 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskTreeItem>, 
   }
 
   private getFavoriteItems(): TaskItem[] {
-    return this.getFavoriteTasks().map((task) => this.createTaskItem(task, getTaskShortLabel(task), "favorites"));
+    return this.getFavoriteTasks().map((task) => this.createTaskItem(task, getTaskShortLabel(task), { treeIdPrefix: "favorites" }));
   }
 
   private getHistoryItems(): TaskItem[] {
-    return this.getHistoryTasks().map((task) => this.createTaskItem(task, getTaskShortLabel(task), "history"));
+    return this.getHistoryTasks().map((task) =>
+      this.createTaskItem(task, getTaskShortLabel(task), { treeIdPrefix: "history", isHistoryItem: true }),
+    );
   }
 }
 
-type CreateTaskItem = (task: RunnableTask, displayLabel: string, treeIdPrefix?: string) => TaskItem;
+type CreateTaskItem = (task: RunnableTask, displayLabel: string) => TaskItem;
 
 function mapNpmProjectTreeNodes(
   nodes: readonly NpmProjectTreeNode[],

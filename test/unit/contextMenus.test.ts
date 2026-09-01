@@ -38,7 +38,16 @@ describe("script context menus", () => {
     assert.match(open[0]?.when ?? "", /view == taskingen\.scripts/);
     assert.match(run[0]?.when ?? "", /view == taskingen\.scripts/);
     assert.match(stop[0]?.when ?? "", /view == taskingen\.scripts/);
-    assert.match(run[0]?.when ?? "", /npmScript/);
+    assert.match(open[0]?.when ?? "", /\(History\)\?/);
     assert.match(stop[0]?.when ?? "", /Running/);
+  });
+
+  it("includes inline and text Remove from History entries for history scripts only", () => {
+    const inline = findContextMenuEntries("taskingen.removeFromHistory", "inline");
+    const text = findContextMenuEntries("taskingen.removeFromHistory", "history");
+
+    assert.equal(inline.length, 1);
+    assert.equal(text.length, 1);
+    assert.match(inline[0]?.when ?? "", /ScriptHistory\(Favorited\)\?\(Running\)\?\$/);
   });
 });

@@ -142,6 +142,19 @@ export class ScriptGroupItem extends vscode.TreeItem {
   }
 }
 
+export interface ScriptContextOptions {
+  readonly isRunning?: boolean;
+  readonly isFavorite?: boolean;
+  readonly isHistoryItem?: boolean;
+}
+
+export function buildScriptContextValue(task: RunnableTask, options: ScriptContextOptions = {}): string {
+  const historySuffix = options.isHistoryItem === true ? "History" : "";
+  const favoriteSuffix = options.isFavorite === true ? "Favorited" : "";
+  const runningSuffix = options.isRunning === true ? "Running" : "";
+  return `${contextValueForTask(task)}${historySuffix}${favoriteSuffix}${runningSuffix}`;
+}
+
 export class TaskItem extends vscode.TreeItem {
   public constructor(
     public readonly task: RunnableTask,
@@ -149,13 +162,11 @@ export class TaskItem extends vscode.TreeItem {
     isRunning: boolean = false,
     treeIdPrefix?: string,
     isFavorite: boolean = false,
+    isHistoryItem: boolean = false,
   ) {
     super(displayLabel, vscode.TreeItemCollapsibleState.None);
 
-    const baseContext = contextValueForTask(task);
-    const favoriteSuffix = isFavorite ? "Favorited" : "";
-    const runningSuffix = isRunning ? "Running" : "";
-    this.contextValue = `${baseContext}${favoriteSuffix}${runningSuffix}`;
+    this.contextValue = buildScriptContextValue(task, { isRunning, isFavorite, isHistoryItem });
     this.description = describeTaskItem(task, isRunning);
     this.tooltip = buildTaskTooltip(task, isRunning);
     this.iconPath = new vscode.ThemeIcon(isRunning ? "play-circle" : task.kind === "shell" ? "file-code" : "symbol-event");

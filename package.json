@@ -114,6 +114,11 @@
         "icon": "$(clear-all)"
       },
       {
+        "command": "taskingen.removeFromHistory",
+        "title": "Taskingen: Remove from History",
+        "icon": "$(close)"
+      },
+      {
         "command": "taskingen.activateScript",
         "title": "Taskingen: Activate Script"
       }
@@ -129,53 +134,63 @@
       "view/item/context": [
         {
           "command": "taskingen.open",
-          "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == denoScript || viewItem == shellScript || viewItem == npmScriptRunning || viewItem == denoScriptRunning || viewItem == shellScriptRunning || viewItem == npmScriptFavorited || viewItem == denoScriptFavorited || viewItem == shellScriptFavorited || viewItem == npmScriptFavoritedRunning || viewItem == denoScriptFavoritedRunning || viewItem == shellScriptFavoritedRunning)",
+          "when": "view == taskingen.scripts && viewItem =~ /^(npm|deno|shell)Script(History)?(Favorited)?(Running)?$/",
           "group": "inline@1"
         },
         {
           "command": "taskingen.run",
-          "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == denoScript || viewItem == shellScript || viewItem == npmScriptFavorited || viewItem == denoScriptFavorited || viewItem == shellScriptFavorited)",
+          "when": "view == taskingen.scripts && viewItem =~ /^(npm|deno|shell)Script(History)?(Favorited)?$/",
           "group": "inline@2"
         },
         {
           "command": "taskingen.stop",
-          "when": "view == taskingen.scripts && (viewItem == npmScriptRunning || viewItem == denoScriptRunning || viewItem == shellScriptRunning || viewItem == npmScriptFavoritedRunning || viewItem == denoScriptFavoritedRunning || viewItem == shellScriptFavoritedRunning)",
+          "when": "view == taskingen.scripts && viewItem =~ /^(npm|deno|shell)Script(History)?(Favorited)?Running$/",
           "group": "inline@2"
         },
         {
           "command": "taskingen.open",
-          "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == denoScript || viewItem == shellScript || viewItem == npmScriptRunning || viewItem == denoScriptRunning || viewItem == shellScriptRunning || viewItem == npmScriptFavorited || viewItem == denoScriptFavorited || viewItem == shellScriptFavorited || viewItem == npmScriptFavoritedRunning || viewItem == denoScriptFavoritedRunning || viewItem == shellScriptFavoritedRunning)",
+          "when": "view == taskingen.scripts && viewItem =~ /^(npm|deno|shell)Script(History)?(Favorited)?(Running)?$/",
           "group": "actions@1"
         },
         {
           "command": "taskingen.run",
-          "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == denoScript || viewItem == shellScript || viewItem == npmScriptFavorited || viewItem == denoScriptFavorited || viewItem == shellScriptFavorited)",
+          "when": "view == taskingen.scripts && viewItem =~ /^(npm|deno|shell)Script(History)?(Favorited)?$/",
           "group": "actions@2"
         },
         {
           "command": "taskingen.stop",
-          "when": "view == taskingen.scripts && (viewItem == npmScriptRunning || viewItem == denoScriptRunning || viewItem == shellScriptRunning || viewItem == npmScriptFavoritedRunning || viewItem == denoScriptFavoritedRunning || viewItem == shellScriptFavoritedRunning)",
+          "when": "view == taskingen.scripts && viewItem =~ /^(npm|deno|shell)Script(History)?(Favorited)?Running$/",
           "group": "actions@3"
         },
         {
           "command": "taskingen.addFavorite",
-          "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == denoScript || viewItem == shellScript || viewItem == npmScriptRunning || viewItem == denoScriptRunning || viewItem == shellScriptRunning)",
+          "when": "view == taskingen.scripts && viewItem =~ /^(npm|deno|shell)Script(History)?(Running)?$/",
           "group": "inline@3"
         },
         {
           "command": "taskingen.removeFavorite",
-          "when": "view == taskingen.scripts && (viewItem == npmScriptFavorited || viewItem == denoScriptFavorited || viewItem == shellScriptFavorited || viewItem == npmScriptFavoritedRunning || viewItem == denoScriptFavoritedRunning || viewItem == shellScriptFavoritedRunning)",
+          "when": "view == taskingen.scripts && viewItem =~ /^(npm|deno|shell)Script(History)?Favorited(Running)?$/",
           "group": "inline@3"
+        },
+        {
+          "command": "taskingen.removeFromHistory",
+          "when": "view == taskingen.scripts && viewItem =~ /^(npm|deno|shell)ScriptHistory(Favorited)?(Running)?$/",
+          "group": "inline@4"
         },
         {
           "command": "taskingen.addFavorite",
-          "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == denoScript || viewItem == shellScript || viewItem == npmScriptRunning || viewItem == denoScriptRunning || viewItem == shellScriptRunning)",
+          "when": "view == taskingen.scripts && viewItem =~ /^(npm|deno|shell)Script(History)?(Running)?$/",
           "group": "favorites@1"
         },
         {
           "command": "taskingen.removeFavorite",
-          "when": "view == taskingen.scripts && (viewItem == npmScriptFavorited || viewItem == denoScriptFavorited || viewItem == shellScriptFavorited || viewItem == npmScriptFavoritedRunning || viewItem == denoScriptFavoritedRunning || viewItem == shellScriptFavoritedRunning)",
+          "when": "view == taskingen.scripts && viewItem =~ /^(npm|deno|shell)Script(History)?Favorited(Running)?$/",
           "group": "favorites@1"
+        },
+        {
+          "command": "taskingen.removeFromHistory",
+          "when": "view == taskingen.scripts && viewItem =~ /^(npm|deno|shell)ScriptHistory(Favorited)?(Running)?$/",
+          "group": "history@1"
         },
         {
           "command": "taskingen.clearFavorites",

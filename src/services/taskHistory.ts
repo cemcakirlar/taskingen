@@ -34,6 +34,13 @@ export class TaskHistoryStore {
     void this.workspaceState.update(HISTORY_STATE_KEY, next);
   }
 
+  public remove(task: IdentityTask): void {
+    const identities = new Set<string>([getTaskIdentity(task), ...getLegacyTaskIdentities(task)]);
+    const next = this.readEntries().filter((entry) => !identities.has(entry.identity));
+    this.entries = next;
+    void this.workspaceState.update(HISTORY_STATE_KEY, next);
+  }
+
   public async clear(): Promise<void> {
     this.entries = [];
     await this.workspaceState.update(HISTORY_STATE_KEY, []);

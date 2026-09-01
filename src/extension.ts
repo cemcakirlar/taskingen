@@ -83,6 +83,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     applyTreeMessage(createEmptyStateMessage(provider.getCounts()));
   };
 
+  const refreshHistoryUi = (): void => {
+    provider.refreshHistory();
+    applyTreeMessage(createEmptyStateMessage(provider.getCounts()));
+  };
+
   const scriptActivation = createScriptActivationController((item) =>
     runConfiguredScriptAction(item, { open: openScript, run: runScript }),
   );
@@ -147,8 +152,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
 
     await taskHistory.clear();
-    provider.refreshHistory();
-    applyTreeMessage(createEmptyStateMessage(provider.getCounts()));
+    refreshHistoryUi();
+  });
+  const removeFromHistoryCommand = vscode.commands.registerCommand("taskingen.removeFromHistory", (item: unknown): void => {
+    if (!(item instanceof TaskItem)) {
+      return;
+    }
+
+    taskHistory.remove(item.task);
+    refreshHistoryUi();
   });
   const refreshCommand = vscode.commands.registerCommand("taskingen.refresh", refresh);
   const watcher = vscode.workspace.createFileSystemWatcher("**/{package.json,deno.json,deno.jsonc,*.sh,*.bash}");
@@ -185,6 +197,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     removeFavoriteCommand,
     clearFavoritesCommand,
     clearHistoryCommand,
+    removeFromHistoryCommand,
     refreshCommand,
     watcher,
     changeListener,
