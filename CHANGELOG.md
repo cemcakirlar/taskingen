@@ -4,6 +4,8 @@ All notable changes to Taskingen are documented in this file.
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-09-01
+
 ### Added
 
 - Running group at the top of the Taskingen tree listing currently active script runs (Closes #5)
