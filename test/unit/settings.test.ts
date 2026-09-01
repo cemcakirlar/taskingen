@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import * as vscode from "vscode";
-import { readHideEmptyScriptRoots } from "../../src/services/settings";
+import { readHideEmptyScriptRoots, readRunningSettings } from "../../src/services/settings";
 
 function configurationStub(getValue: (key: string) => unknown): vscode.WorkspaceConfiguration {
   return {
@@ -20,5 +20,17 @@ describe("readHideEmptyScriptRoots", () => {
   it("reads explicit boolean values", () => {
     assert.equal(readHideEmptyScriptRoots(configurationStub((key) => (key === "tree.hideEmptyScriptRoots" ? false : undefined))), false);
     assert.equal(readHideEmptyScriptRoots(configurationStub((key) => (key === "tree.hideEmptyScriptRoots" ? true : undefined))), true);
+  });
+});
+
+describe("readRunningSettings", () => {
+  it("defaults to enabled", () => {
+    assert.deepEqual(readRunningSettings(configurationStub(() => undefined)), { enabled: true });
+  });
+
+  it("reads explicit boolean values", () => {
+    assert.deepEqual(readRunningSettings(configurationStub((key) => (key === "running.enabled" ? false : undefined))), {
+      enabled: false,
+    });
   });
 });

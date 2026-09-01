@@ -6,11 +6,13 @@ All notable changes to Taskingen are documented in this file.
 
 ### Added
 
+- Running group at the top of the Taskingen tree listing currently active script runs (Closes #5)
+- Setting `taskingen.running.enabled` (default `true`) toggles the Running group
 - Setting `taskingen.tree.hideEmptyScriptRoots` (default `true`) hides npm Scripts, Deno Tasks, and Shell Scripts root groups when discovery finds none of that type
 
 ### Changed
 
-- Taskingen settings in the VS Code settings UI are ordered discovery → tree → grouping → interaction → favorites → history
+- Taskingen settings in the VS Code settings UI are ordered discovery → tree → grouping → interaction → running → favorites → history
 
 ## [0.1.6] - 2026-08-31
 

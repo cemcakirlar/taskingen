@@ -14,7 +14,7 @@ import { getTaskIdentity } from "../services/taskIdentity";
 import { isTreeLevelExpanded } from "../services/treeExpansion";
 import { projectFolderDescription, workspaceRelativePath } from "../services/workspacePath";
 
-export type TaskGroupKind = "npm" | "deno" | "shell" | "history" | "favorites";
+export type TaskGroupKind = "npm" | "deno" | "shell" | "history" | "favorites" | "running";
 
 export type PathFolderKind = "npm" | "deno" | "shell";
 
@@ -205,6 +205,10 @@ function iconForGroup(groupKind: TaskGroupKind): string {
 
   if (groupKind === "favorites") {
     return "star-full";
+  }
+
+  if (groupKind === "running") {
+    return "play-circle";
   }
 
   return "history";

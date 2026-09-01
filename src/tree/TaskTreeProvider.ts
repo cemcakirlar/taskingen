@@ -5,6 +5,7 @@ import {
   readHideEmptyScriptRoots,
   readNpmProjectGroupingSettings,
   readNpmScriptGroupingSettings,
+  readRunningSettings,
   readTaskHistorySettings,
 } from "../services/settings";
 import { scanDenoJsonProjects, type DenoProject } from "../services/denoJsonScanner";
@@ -43,6 +44,7 @@ export interface TaskCounts {
   readonly shell: number;
   readonly history: number;
   readonly favorites: number;
+  readonly running: number;
 }
 
 export class TaskTreeProvider implements vscode.TreeDataProvider<TaskTreeItem>, vscode.Disposable {
@@ -69,6 +71,10 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskTreeItem>, 
     const defaultExpandedDepth = readDefaultExpandedDepth();
 
     if (element instanceof TaskGroupItem) {
+      if (element.groupKind === "running") {
+        return this.getRunningItems();
+      }
+
       if (element.groupKind === "favorites") {
         return this.getFavoriteItems();
       }
@@ -177,12 +183,18 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskTreeItem>, 
 
     const npmScriptCount = this.npmProjects.reduce((total, project) => total + project.scripts.length, 0);
     const denoTaskCount = this.denoProjects.reduce((total, project) => total + project.tasks.length, 0);
+    const runningCount = this.runningRegistry.getEntries().length;
     const favoritesCount = this.getFavoriteTasks().length;
     const historyCount = this.getHistoryTasks().length;
+    const runningSettings = readRunningSettings();
     const favoritesSettings = readFavoritesSettings();
     const historySettings = readTaskHistorySettings();
     const hideEmptyScriptRoots = readHideEmptyScriptRoots();
     const roots: TaskTreeItem[] = [];
+
+    if (runningSettings.enabled && runningCount > 0) {
+      roots.push(new TaskGroupItem("running", "Running", describeCount(runningCount), 0, defaultExpandedDepth));
+    }
 
     if (favoritesSettings.enabled && favoritesCount > 0) {
       roots.push(new TaskGroupItem("favorites", "Favorites", describeCount(favoritesCount), 0, defaultExpandedDepth));
@@ -246,6 +258,7 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskTreeItem>, 
       shell: this.shellScripts.length,
       history: this.getHistoryTasks().length,
       favorites: this.getFavoriteTasks().length,
+      running: this.runningRegistry.getEntries().length,
     };
   }
 
@@ -283,6 +296,12 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskTreeItem>, 
   private getHistoryItems(): TaskItem[] {
     return this.getHistoryTasks().map((task) =>
       this.createTaskItem(task, getTaskShortLabel(task), { treeIdPrefix: "history", isHistoryItem: true }),
+    );
+  }
+
+  private getRunningItems(): TaskItem[] {
+    return this.runningRegistry.getEntries().map((entry) =>
+      this.createTaskItem(entry.task, entry.label, { treeIdPrefix: "running" }),
     );
   }
 }

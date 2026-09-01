@@ -286,6 +286,12 @@
             "Activate the script on double click."
           ]
         },
+        "taskingen.running.enabled": {
+          "type": "boolean",
+          "order": 59,
+          "default": true,
+          "description": "Show the Running group at the top of the Taskingen tree with currently active script runs."
+        },
         "taskingen.favorites.enabled": {
           "type": "boolean",
           "order": 60,

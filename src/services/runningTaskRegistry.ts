@@ -23,6 +23,10 @@ export class RunningTaskRegistry implements vscode.Disposable {
     return this.entries.get(getTaskIdentity(task));
   }
 
+  public getEntries(): readonly RunningTaskEntry[] {
+    return [...this.entries.values()];
+  }
+
   public register(entry: RunningTaskEntry): void {
     this.entries.set(entry.identity, entry);
     this.changeEmitter.fire();

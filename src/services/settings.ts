@@ -26,6 +26,10 @@ export interface FavoritesSettings {
   readonly maxItems: number;
 }
 
+export interface RunningSettings {
+  readonly enabled: boolean;
+}
+
 export function readDiscoveryExcludePatterns(
   configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("taskingen"),
 ): string[] {
@@ -107,6 +111,16 @@ export function readFavoritesSettings(
   };
 }
 
+export function readRunningSettings(
+  configuration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("taskingen"),
+): RunningSettings {
+  const enabledValue = configuration.get("running.enabled");
+
+  return {
+    enabled: typeof enabledValue === "boolean" ? enabledValue : true,
+  };
+}
+
 export function affectsTaskingenTree(event: vscode.ConfigurationChangeEvent): boolean {
   return (
     event.affectsConfiguration("taskingen.npmScriptGrouping.separator") ||
@@ -119,6 +133,7 @@ export function affectsTaskingenTree(event: vscode.ConfigurationChangeEvent): bo
     event.affectsConfiguration("taskingen.taskHistory.maxItems") ||
     event.affectsConfiguration("taskingen.favorites.enabled") ||
     event.affectsConfiguration("taskingen.favorites.maxItems") ||
+    event.affectsConfiguration("taskingen.running.enabled") ||
     event.affectsConfiguration("taskingen.discovery.exclude")
   );
 }
