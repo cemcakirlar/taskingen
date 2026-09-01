@@ -143,6 +143,21 @@
           "group": "inline@2"
         },
         {
+          "command": "taskingen.open",
+          "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == denoScript || viewItem == shellScript || viewItem == npmScriptRunning || viewItem == denoScriptRunning || viewItem == shellScriptRunning || viewItem == npmScriptFavorited || viewItem == denoScriptFavorited || viewItem == shellScriptFavorited || viewItem == npmScriptFavoritedRunning || viewItem == denoScriptFavoritedRunning || viewItem == shellScriptFavoritedRunning)",
+          "group": "actions@1"
+        },
+        {
+          "command": "taskingen.run",
+          "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == denoScript || viewItem == shellScript || viewItem == npmScriptFavorited || viewItem == denoScriptFavorited || viewItem == shellScriptFavorited)",
+          "group": "actions@2"
+        },
+        {
+          "command": "taskingen.stop",
+          "when": "view == taskingen.scripts && (viewItem == npmScriptRunning || viewItem == denoScriptRunning || viewItem == shellScriptRunning || viewItem == npmScriptFavoritedRunning || viewItem == denoScriptFavoritedRunning || viewItem == shellScriptFavoritedRunning)",
+          "group": "actions@3"
+        },
+        {
           "command": "taskingen.addFavorite",
           "when": "view == taskingen.scripts && (viewItem == npmScript || viewItem == denoScript || viewItem == shellScript || viewItem == npmScriptRunning || viewItem == denoScriptRunning || viewItem == shellScriptRunning)",
           "group": "inline@3"
