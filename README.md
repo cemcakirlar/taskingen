@@ -21,7 +21,7 @@ Taskingen discovers `package.json` scripts, `deno.json` / `deno.jsonc` tasks, an
 1. Build a VSIX: `npm run package` → creates `taskingen-<version>.vsix`
 2. Command Palette → **Extensions: Install from VSIX…** → select that file
 
-Requires VS Code / Cursor `^1.125.0`.
+Requires VS Code / Cursor `^1.96.0`.
 
 ## Usage
 

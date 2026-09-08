@@ -2,7 +2,7 @@
   "name": "taskingen",
   "displayName": "Taskingen",
   "description": "Run npm, Deno, and shell scripts from the Explorer sidebar.",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "publisher": "cemcakirlar",
   "icon": "media/icon.png",
   "license": "MIT",
@@ -24,7 +24,7 @@
     "explorer"
   ],
   "engines": {
-    "vscode": "^1.125.0"
+    "vscode": "^1.96.0"
   },
   "categories": [
     "Other"
@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
-    "@types/vscode": "^1.125.0",
+    "@types/vscode": "~1.96.0",
     "@vscode/vsce": "^3.9.2",
     "ovsx": "^1.0.2",
     "typescript": "^5.8.0"
@@ -61,6 +61,7 @@
         {
           "id": "taskingen.scripts",
           "name": "Taskingen",
+          "icon": "media/activity-bar.svg",
           "contextualTitle": "Taskingen"
         }
       ]

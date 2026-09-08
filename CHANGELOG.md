@@ -4,6 +4,16 @@ All notable changes to Taskingen are documented in this file.
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-09-08
+
+### Added
+
+- Activity bar icon for the Taskingen view container
+
+### Changed
+
+- Lowered minimum VS Code / Cursor engine requirement to `^1.96.0` (from `^1.125.0`) for broader editor compatibility
+
 ## [0.1.7] - 2026-09-01
 
 ### Added
